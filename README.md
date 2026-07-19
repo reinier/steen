@@ -30,9 +30,9 @@ sudo systemctl reboot
 
 - **Desktop** — niri + DankMaterialShell with the kitty terminal; boots straight
   in, no session picker.
-- **Browsers** — Firefox and Chromium, with full media codecs.
-- **Apps** — 1Password, Nextcloud, Synology Drive, and **Bazaar** for installing
-  Flatpaks from Flathub.
+- **Browser** — Chromium, with full media codecs.
+- **Apps** — 1Password, Synology Drive, and **Bazaar** for installing Flatpaks
+  from Flathub.
 - **Terminal toolkit** — fish, starship, eza, bat, lazygit, yazi, and friends,
   plus Homebrew for anything else.
 - **Tap-hold Super key** — tap for the app menu, hold as the window modifier.

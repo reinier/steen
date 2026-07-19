@@ -53,8 +53,8 @@ Most items are a **translation**, not a fresh design:
    + quickshell + kitty + xwayland-satellite, from **Fedora stable**.
 4. [0004-greetd-dms-greeter-login.md](0004-greetd-dms-greeter-login.md) — greetd +
    dms-greeter, boot straight into niri (the one desktop COPR exception).
-5. [0005-browsers-and-codecs.md](0005-browsers-and-codecs.md) — native firefox +
-   chromium + `libavcodec-freeworld` (RPM Fusion).
+5. [0005-browsers-and-codecs.md](0005-browsers-and-codecs.md) — native chromium +
+   `libavcodec-freeworld` (RPM Fusion); Firefox dropped (and removed from the base).
 6. [0006-1password-native.md](0006-1password-native.md) — native 1Password + CLI,
    `/opt` relocation, setuid/setgid, `ptrace_scope=1`.
 7. [0007-cli-toolkit-terra.md](0007-cli-toolkit-terra.md) — fish/eza/bat/jq/… +

@@ -30,11 +30,13 @@ compositor. So remove (or mask) the base's:
   notifications), `swaylock` + `swayidle` (→ DMS lock/idle), `sway` itself + its
   session/config, and the Sway `foot`-as-default wiring (Steen uses kitty, 0003).
 - **`Thunar` → replace with `nautilus`** — Steen needs Nautilus specifically for the
-  Nextcloud/Synology Nautilus extensions (0008 and the Nextcloud item). Install
-  `nautilus` (+ `nautilus-python` if the extensions need it).
+  Synology Drive Nautilus extension (0008). Install `nautilus` (+ `nautilus-python`
+  if the extension needs it).
+- **`firefox` → remove.** The base ships Firefox; Steen ships a single native browser
+  (Chromium, 0005). `dnf5 remove firefox` (or `systemctl mask` any base autostart)
+  so it doesn't linger.
 - **Keep** `kanshi` (display hotplug config is still useful under niri — Zirconium
-  keeps it), brightness/`light`/`playerctl`/`wl-clipboard`-type utilities, and
-  Firefox (0005 installs it anyway; dedupe).
+  keeps it) and brightness/`light`/`playerctl`/`wl-clipboard`-type utilities.
 
 > Removal mechanics on a layered bootc image: prefer `dnf5 remove` in the
 > Containerfile; where a package is protected/comps-pinned, `systemctl mask` the

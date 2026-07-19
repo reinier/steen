@@ -41,9 +41,10 @@ changes shape.
   (or bootc's own update timer) for the OS, with Flatpak and brew updating
   **separately**. "Keep my system current" goes from one thing to three.
 
-Decision needed: port uupd / rely on bootc's auto-update timer / drive updates
-manually. → [`0016-system-updates.md`](../backlog/0016-system-updates.md)
-(recommends porting uupd via Terra).
+**Decided:** three independent streams (`bootc upgrade` / `flatpak update` /
+`brew upgrade`), updated **manually and separately** — no uupd, no auto-update timer.
+The fragmentation is intentional: independent cadence, easy rollback, one less
+upstream. → [`0016-system-updates.md`](../backlog/0016-system-updates.md).
 
 ---
 

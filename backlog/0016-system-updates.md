@@ -1,57 +1,53 @@
-# System updates: keep the unified updater (uupd)
+# System updates: three streams, updated manually and separately
 
-- **Status:** proposed
-- **Created:** 2026-07-19
-- **Area:** image (systemd preset, `uupd` package via Terra)
-- **Depends:** 0001; interacts with 0007 (Terra wiring), 0011 (Flatpak), 0015 (brew)
-- **Related:** Zirconium's presets enable `uupd.timer` and **disable** bootc
-  auto-updates ([`inspiration/zirconium`](../../conium/inspiration/zirconium)
-  `01-zirconium.preset`); Zirconium's `terra.conf` ships `uupd`;
-  [ublue-os/uupd](https://github.com/ublue-os/uupd);
+- **Status:** accepted
+- **Created:** 2026-07-19 (decision revised 2026-07-19 — manual, no uupd)
+- **Area:** image (systemd preset: ensure auto-update timers are **off**)
+- **Depends:** 0001; interacts with 0011 (Flatpak), 0015 (brew)
+- **Related:** Zirconium's presets enable `uupd.timer` + disable bootc auto-update
+  ([`inspiration/zirconium`](../../conium/inspiration/zirconium) `01-zirconium.preset`);
   [`../notes/zirconium-vs-steen-deltas.md`](../notes/zirconium-vs-steen-deltas.md) §2.
 
-## Problem
+## Decision
 
-rheniite got a **unified update experience from the Zirconium base**: `uupd`
-(Universal Blue's updater) refreshes the bootc image **+ Flatpaks + brew** in one
-timer-driven pass, with bootc's own auto-update disabled. The Sway Atomic base has
-no uupd — left alone, "keep my system current" fragments into three separate
-things: `bootc upgrade` (OS), `flatpak update`, `brew upgrade`.
+Steen has **three independent update streams**, each driven **manually** by the user,
+on its own cadence — **no unified updater**:
 
-## Options
+- **OS (bootc):** `sudo bootc upgrade` → reboot.
+- **Flatpaks:** `flatpak update`.
+- **Homebrew:** `brew upgrade`.
 
-1. **Port uupd** *(recommended)* — it's a **Terra** package, and Steen already
-   wires Terra in [0007](0007-cli-toolkit-terra.md), so this is nearly free: install
-   `uupd`, enable `uupd.timer` in the system preset, and disable bootc auto-update —
-   mirroring Zirconium exactly. Keeps the update UX you already have muscle memory
-   for; unified across image/Flatpak/brew.
-2. **bootc timer + separate app updates** — enable
-   `bootc-fetch-apply-updates.timer` for the OS and wire our own Flatpak/brew update
-   units. Fedora-native, no extra tool, but not unified and more moving parts.
-3. **Manual** — user runs the three commands when they want (wrap them in an
-   `rl-update` helper in dotfiles). Most control, no surprise reboots staged, but
-   nothing happens unattended.
+No `uupd`, and **no bundled wrapper** that runs all three — they stay separate on
+purpose.
 
-## Recommendation
+## Why (changed from the earlier uupd recommendation)
 
-**Option 1.** uupd via Terra is cheap here and preserves the exact update behavior
-rheniite/Zirconium have — the least-surprise choice, and it keeps brew (0015) and
-Flatpaks (0011) in the same pass instead of drifting. Disable bootc auto-update so
-the two mechanisms don't both stage updates.
+The first pass recommended porting `uupd` to match Zirconium's unified,
+timer-driven update UX. Revised: **manual + separate** is preferred.
 
-> If Steen's "fewer upstream dependencies" ethos later wins out over continuity,
-> option 3's `rl-update` wrapper is the clean fallback — no daemon, no ublue tool.
+- **Control / no surprises.** Nothing updates or stages a new deployment
+  unattended; you choose when each stream moves, and can hold one back (e.g. pin the
+  OS while still updating Flatpaks).
+- **Independent cadence.** The OS, app, and CLI-tool streams have genuinely
+  different risk profiles; decoupling them makes a regression easy to localize and
+  roll back (`bootc rollback` for the OS alone).
+- **One less upstream.** No ublue `uupd` dependency — consistent with Steen's
+  "nothing between you and Fedora" ethos.
 
 ## Implementation sketch
 
-- `dnf5 install uupd` (Terra, already enabled in 0007).
-- System preset: `enable uupd.timer`; ensure bootc auto-update units are **disabled**
-  (match Zirconium's preset).
-- Confirm uupd's F44 defaults cover image + Flatpak + brew; adjust its config if the
-  brew path differs from ublue's assumption (Steen bakes brew per 0015).
+- **Do not** install `uupd`; **do not** enable `uupd.timer`.
+- **Ensure no auto-update timer is enabled** in the image — the Sway Atomic base may
+  ship an rpm-ostree/bootc auto-update timer on by default. Explicitly **mask/disable**
+  `bootc-fetch-apply-updates.timer` (and any `rpm-ostreed-automatic.timer`) in the
+  system preset so updates only happen when invoked.
+- Optional, if wanted later: **per-stream** aliases/functions in `dotfiles-steen`
+  (e.g. `rl-os-update`, and shell aliases for the Flatpak/brew ones) — but keep them
+  distinct commands, not one aggregate, per this decision.
 
 ## Verification
 
-- `systemctl is-enabled uupd.timer` → enabled; bootc auto-update disabled.
-- A manual `uupd` run pulls a new signed image, updates Flatpaks, and runs
-  `brew upgrade` in one pass; reboot lands on the new deployment.
+- Fresh boot: `systemctl list-timers` shows **no** OS auto-update timer active, and
+  `uupd` is absent.
+- Each stream updates on its own: `sudo bootc upgrade` stages a new signed image
+  (reboot to apply); `flatpak update` and `brew upgrade` run independently.

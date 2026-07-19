@@ -9,9 +9,15 @@ into a complete, ready-to-use desktop.
 Everything is built from **stable Fedora packages**, so the desktop stays
 co-tested and predictable rather than chasing bleeding-edge builds.
 
-> **Status:** early / in development — the image isn't published yet.
+> ## 🚧 Work in progress — not usable yet
+>
+> **Current state:** design/planning only. This repo holds the *plan* for Steen —
+> see [`backlog/`](backlog/) for the build items and [`notes/`](notes/) for
+> background. **No image has been built or published**, there is nothing to install
+> yet, and the steps below will not work until a first release exists. Everything
+> below describes what Steen is intended to become.
 
-## Install
+## Install (once released)
 
 Steen is image-based: you install a Fedora atomic desktop and then rebase onto it.
 

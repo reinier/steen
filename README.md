@@ -35,7 +35,6 @@ sudo systemctl reboot
   from Flathub.
 - **Terminal toolkit** — fish, starship, eza, bat, lazygit, yazi, and friends,
   plus Homebrew for anything else.
-- **Tap-hold Super key** — tap for the app menu, hold as the window modifier.
 
 ## Updating
 

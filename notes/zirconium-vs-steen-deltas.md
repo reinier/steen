@@ -32,7 +32,8 @@ of Steen's Fedora stable (**DMS `1.4.4`, niri `26.04`, quickshell** as F44 ships
 
 ## 2. GAP — how you update the machine
 
-**Not captured in the backlog yet.** A daily-touch surface that changes shape.
+Captured in [`0016`](../backlog/0016-system-updates.md). A daily-touch surface that
+changes shape.
 
 - **Zirconium:** enables **uupd** (Universal Blue's unified updater — image +
   Flatpaks + brew in one timer-driven pass) and *disables* bootc auto-update.
@@ -41,33 +42,33 @@ of Steen's Fedora stable (**DMS `1.4.4`, niri `26.04`, quickshell** as F44 ships
   **separately**. "Keep my system current" goes from one thing to three.
 
 Decision needed: port uupd / rely on bootc's auto-update timer / drive updates
-manually. → **proposed `0016-system-updates.md`.**
+manually. → [`0016-system-updates.md`](../backlog/0016-system-updates.md)
+(recommends porting uupd via Terra).
 
 ---
 
 ## 3. GAP — hardware & session niceties Zirconium's presets enabled
 
-**Not captured in the backlog yet.** Zirconium's system/user presets quietly turn on
-a pile of things; some would **silently vanish** on Steen because they're Terra/extra
-packages, not part of the Sway Atomic base.
+Captured in [`0017`](../backlog/0017-hardware-session-niceties.md). Zirconium's
+system/user presets quietly turn on a pile of things; some would **silently vanish**
+on Steen because they're Terra/extra packages, not part of the Sway Atomic base.
 
 | Feature | Package | On Sway Atomic base? | Symptom if dropped |
 |---|---|---|---|
-| Screen autorotate | `iio-niri` (Terra) | no — must add | tablet/convertible won't rotate |
-| External-monitor brightness | `ddcutil` | probably not | can't dim an external display |
-| RGB control | `openrgb`(-udev-rules) | no | RGB peripherals uncontrolled |
-| Key remapping | `input-remapper` | no (Steen uses keyd, [0009](../backlog/0009-keyd-tap-hold-super.md)) | n/a — keyd covers the Super remap |
 | Fingerprint | `fprintd` | likely yes | fingerprint login/sudo gone |
-| Thunderbolt | `bolt` | likely yes | TB device authorization gone |
 | Firmware updates | `fwupd` | likely yes | no `fwupd` firmware updates |
-| CJK input | `fcitx5` (+addons) | no | can't type CJK |
+| Thunderbolt | `bolt` | likely yes | TB device authorization gone |
 | Containers | `distrobox` / `podman` | podman likely, distrobox maybe | `distrobox`/`podman` missing |
+| External-monitor brightness | `ddcutil` | probably not | can't dim an external display |
+| Screen autorotate | `iio-niri` (Terra) | no — must add | tablet/convertible won't rotate |
+| Key remapping | `input-remapper` | n/a — keyd ([0009](../backlog/0009-keyd-tap-hold-super.md)) covers the Super remap | — |
 
 End-user symptom if missed: "feature X that worked on Zirconium is gone." On the
 **Framework** specifically, `fprintd` + `fwupd` are the ones not to lose silently.
 
-Scope depends on which of these are actually relied on — **confirm before writing
-the item.** → **proposed `0017-hardware-session-niceties.md`.**
+**Dropped (decided 2026-07-19):** OpenRGB (`openrgb`, no RGB gear) and CJK input
+(`fcitx5` + addons, Dutch/English workflow). Both are re-addable later if needs
+change.
 
 ---
 

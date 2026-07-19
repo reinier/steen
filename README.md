@@ -46,6 +46,12 @@ flatpak update         # your apps
 brew upgrade           # CLI tools
 ```
 
+## Configuration
+
+Steen provides the desktop and apps, not a personal setup. Bring your own dotfiles
+for the tailored experience — niri keybinds, DMS theming, shell config, key remaps,
+and the like.
+
 ## Notes
 
 Steen is a personal project, not an official Fedora product. niri and

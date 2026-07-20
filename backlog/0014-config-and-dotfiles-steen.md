@@ -1,61 +1,81 @@
-# Own the config: dotfiles-steen (seeded from bluefin-niri)
+# Own the config: dotfiles-steen (derived from dotfiles-rheniite)
 
 - **Status:** proposed
-- **Created:** 2026-07-19
-- **Area:** new repo `dotfiles-steen` (chezmoi) + image (default config, if baked)
+- **Created:** 2026-07-19 (seed corrected 2026-07-20 → dotfiles-rheniite)
+- **Area:** new repo `dotfiles-steen` (chezmoi)
 - **Depends:** 0003 (desktop), 0004 (session) — needs installed binaries to target
-- **Related:** rheniite
-  [`backlog/own-desktop-config.md`](../../rheniite/rheniite/backlog/own-desktop-config.md)
-  (the "own the config, don't inherit zdots" argument, applied here);
-  [`dotfiles-bluefin-niri`](../../conium/dotfiles-bluefin-niri) (the seed);
-  [`dotfiles-rheniite`](../../rheniite/dotfiles-rheniite) (keyd/Synology deltas to graft).
+- **Related:**
+  **[`/home/reinier/dev/rheniite/dotfiles-rheniite`](../../rheniite/dotfiles-rheniite)
+  — the primary seed** (the latest, daily-driven niri + DMS personal config);
+  [`dotfiles-bluefin-niri`](../../conium/dotfiles-bluefin-niri) (only for the one thing
+  rheniite delegates to its image — see the gap below); rheniite
+  [`backlog/own-desktop-config.md`](../../rheniite/rheniite/backlog/own-desktop-config.md).
 
-## Problem
+## Seed: dotfiles-rheniite (authoritative)
 
-Steen runs **stable** Fedora niri/DMS. Zirconium's `zdots` config is authored
-against **git-HEAD** DMS/niri and re-applied daily — pointing Steen at it would
-skew config against the installed binaries (niri refusing a post-`26.04` option,
-`dms ipc` calling renamed verbs). Steen must **own its config**, targeted at the
-stable stack. This is rheniite's `own-desktop-config` problem, and Steen must
-solve it from the start (it has no zdots to fall back on).
+`dotfiles-steen` is **derived from `/home/reinier/dev/rheniite/dotfiles-rheniite`** —
+the current, actively-used niri + DankMaterialShell config, and the best-matched
+starting point Steen has. It already fits Steen far better than bluefin-niri did in the
+earlier plan, because it was written for the *same* image conventions Steen adopts:
 
-## The seed already exists
+- **keyd** (root system service), not bluefin's kanata — matches [0009](0009-keyd-tap-hold-super.md).
+- **native 1Password** assumptions, not bluefin's distrobox workaround — matches [0006](0006-1password-native.md).
+- **Synology Drive** wrapper + HiDPI fixup — matches [0008](0008-synology-drive.md).
+- plus dank-lader, matugen theming, fish/kitty/starship, the `rl-*` helpers, and the
+  `local/*.kdl` niri overrides.
 
-`dotfiles-bluefin-niri` is the **only** dotfiles repo authored against **stable**
-Fedora niri/DMS — it vendors a full DMS-generated `config.kdl` (because `dms setup`
-can't run atomically) with a final `include "local.kdl"`, plus the dank-lader
-leader menu, matugen theming, fish/kitty/starship, and the `rl-*` helpers. Seed
-`dotfiles-steen` from it, then graft the **rheniite deltas** that fit Steen's image:
+**Version fit is good now.** An earlier draft worried that rheniite's config (written
+against Zirconium's git-HEAD DMS/niri) would skew against Steen's *stable* binaries.
+That concern has mostly evaporated: Steen runs **dms 1.5.2 / quickshell 0.3.0** (0003)
+— near-HEAD, released two days before this was written — so it's very close to what
+rheniite's config already targets, not the months-stale Fedora 1.4.4 the old draft
+assumed. Still validate against the installed versions (`niri validate`, DMS logs), but
+expect small deltas, not a rewrite.
 
-- **keyd** (root system service) instead of bluefin's kanata — matches 0009.
-- **Synology Drive** wrapper + HiDPI fixup — matches 0008.
-- **Drop** bluefin's 1Password-via-distrobox (Steen has native 1Password, 0006)
-  and its GNOME-coexistence notes (Steen is niri-only).
-- **Timezone**, if it ever needs setting. Inherited from [0013](0013-first-boot-defaults.md),
-  which was dropped: the installer already prompts for it, and baking one person's
-  timezone into a public image would override a correct answer. A one-line
-  `timedatectl set-timezone` here if a machine ever needs it — no image rebuild.
-- **Own the Flatpak app list**, including **Bazaar** (`io.github.kolunmi.Bazaar`) —
-  the image ships Flatpak + the Flathub remote, the dotfiles decide which apps get
-  installed ([0011](0011-bazaar-flatpak-appstore.md)). Bazaar is the app store itself,
-  so put it first in the list.
-- **Drop** the bluefin `rpm-ostree` layer + DMS-autostart script (the image bakes
-  the desktop; DMS autostart comes from 0004's user preset).
+## The one gap: the base niri config
 
-## Decision to make: baked defaults vs dotfiles-only
+`dotfiles-rheniite` ships **only the override layer** — `local.kdl` and
+`local/{settings,startup,input,layout,binds,window-rules}.kdl`. It has **no top-level
+`config.kdl`** and **no `dms/*.kdl`**, because on rheniite those come from the Zirconium
+**image** (`/usr/share/zirconium/zdots`, applied to `$HOME`). Steen bakes **no** config
+([decision below]), so niri would have nothing to load — `local/*.kdl` are includes,
+not a standalone config.
 
-- **A. Bake a default config into `/usr/share/steen/...`** (Zirconium's model) and
-  have chezmoi lay personal overrides on top — a usable desktop even before
-  `chezmoi apply`.
-- **B. Dotfiles-only** — image ships binaries, all config comes from
-  `dotfiles-steen`. Simpler image; a bare first boot until chezmoi runs.
-- **Recommend B to start** (image stays a clean package layer; config iterates
-  without image rebuilds — the split rheniite/bluefin already use), revisiting A
-  only if a pre-`chezmoi` usable desktop becomes necessary (e.g. for the greeter,
-  which already vendors its own config in 0004).
+So `dotfiles-steen` must additionally supply the base rheniite delegates to its image:
+the top-level `config.kdl` (the include chain that pulls in `dms.kdl` + the base binds/
+input/layout + `local.kdl` last) and the `dms/*.kdl`. Fill it from one of:
+
+1. **`dotfiles-bluefin-niri`'s vendored copy** *(recommended)* — bluefin is also
+   imageless and already vendors a full DMS-generated `config.kdl` + `dms/*.kdl` for
+   exactly this reason. Take that base, drop rheniite's `local/*.kdl` on top. Cleanest,
+   and both repos already share most of the rest.
+2. **`dms setup`** on first run — regenerate the base per-user. Fewer vendored files to
+   maintain, but it's a first-run step, and 0003's build showed `dms` is the COPR CLI
+   whose `setup` behaviour should be verified on real hardware first.
+
+Drop bluefin's kanata, 1Password-via-distrobox, GNOME-coexistence notes, and its
+`rpm-ostree` layer / DMS-autostart script — all obsolete on Steen (keyd, native
+1Password, niri-only, and 0004's preset handle those).
+
+## Also owned here
+
+- **The Flatpak app list**, incl. **Bazaar** (`io.github.kolunmi.Bazaar`, first in the
+  list — it's the store itself). Image ships Flatpak + the Flathub remote;
+  dotfiles pick the apps ([0011](0011-bazaar-flatpak-appstore.md)).
+- **Timezone**, only if a machine needs it — a one-line `timedatectl set-timezone`
+  ([0013](0013-first-boot-defaults.md) was dropped; the installer sets it).
+
+## Decision: baked defaults vs dotfiles-only
+
+- **A. Bake a default config into `/usr/share/steen/…`** (Zirconium's model), overrides
+  on top — usable desktop before `chezmoi apply`.
+- **B. Dotfiles-only** — image ships binaries, all config from `dotfiles-steen`.
+- **Recommend B** (image stays a clean package layer; config iterates without image
+  rebuilds). The greeter already vendors its own config in 0004, so a bare pre-`chezmoi`
+  desktop is acceptable. This is *why* the gap above exists and must be closed in the
+  dotfiles rather than the image.
 
 ## Verification
 
-- Fresh Steen install + `chezmoi apply` from `dotfiles-steen` → niri/DMS come up
-  themed and bound, dank-lader works, keyd active, no config-schema errors in
-  `niri validate` / DMS logs.
+- Fresh Steen install + `chezmoi apply` from `dotfiles-steen` → niri/DMS come up themed
+  and bound, dank-lader works, keyd active, `niri validate` clean, no DMS schema errors.

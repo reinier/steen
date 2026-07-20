@@ -71,7 +71,7 @@ Most items are a **translation**, not a fresh design:
 13. [0013-first-boot-defaults.md](0013-first-boot-defaults.md) — **dropped**: timezone → dotfiles, NTP → verify (Fedora default).
     any first-boot sysctl/tmpfiles.
 14. [0014-config-and-dotfiles-steen.md](0014-config-and-dotfiles-steen.md) — own the
-    stable-targeted niri/DMS config; seed `dotfiles-steen` from `dotfiles-bluefin-niri`.
+    stable-targeted niri/DMS config; derive `dotfiles-steen` from `dotfiles-rheniite` (the current daily-driver config).
 15. [0015-no-homebrew.md](0015-no-homebrew.md) — **no** Homebrew: toolkit baked from
     Fedora/Terra (0007), Nerd Font baked (0002), ad-hoc tooling via distrobox (0017).
 16. [0016-system-updates.md](0016-system-updates.md) — two independent update streams

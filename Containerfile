@@ -315,6 +315,20 @@ RUN set -e; \
     systemctl is-enabled tailscaled.service >/dev/null || { echo "ERROR: tailscaled is not enabled" >&2; exit 1; }; \
     echo "apps OK: chromium $(rpm -q --qf '%{VERSION}' chromium), 1password $(rpm -q --qf '%{VERSION}' 1password), synology $(rpm -q --qf '%{VERSION}' synology-drive-noextra), tailscale $(rpm -q --qf '%{VERSION}' tailscale), keyd at $(command -v keyd)"
 
+# --- Update policy: manual only (backlog/0016) ---
+# Steen updates in two manual streams (bootc + flatpak); nothing updates unattended.
+# The base ships two OS auto-update timers — mask BOTH so they can never fire, even if
+# something tries to pull them in (mask is stronger than disable: the unit is symlinked
+# to /dev/null and cannot be started at all). `rpm-ostree-countme.timer` is left alone:
+# it's privacy-respecting install-count telemetry, not an updater.
+# To ever re-enable unattended updates you'd `systemctl unmask` first — intended.
+RUN systemctl mask bootc-fetch-apply-updates.timer rpm-ostreed-automatic.timer \
+ && for t in bootc-fetch-apply-updates.timer rpm-ostreed-automatic.timer; do \
+      [ "$(readlink -f "/etc/systemd/system/$t")" = /dev/null ] \
+        || { echo "ERROR: $t not masked" >&2; exit 1; }; \
+    done \
+ && echo "update timers masked: bootc-fetch-apply-updates + rpm-ostreed-automatic"
+
 # --- Image-update trust (backlog/0001) ---
 # Steen boots this image, so it must verify its own update stream
 # (ghcr.io/reinier/steen). The fedora-ostree-desktops base ships only Fedora's

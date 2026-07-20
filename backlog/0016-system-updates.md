@@ -1,6 +1,6 @@
 # System updates: two streams, updated manually and separately
 
-- **Status:** accepted
+- **Status:** done (implemented 2026-07-20; boot check in [0018](0018-first-boot-checklist.md) §F)
 - **Created:** 2026-07-19 (decision revised 2026-07-19 — manual, no uupd)
 - **Area:** image (systemd preset: ensure auto-update timers are **off**)
 - **Depends:** 0001; interacts with 0011 (Flatpak), 0015 (no brew)
@@ -34,16 +34,25 @@ timer-driven update UX. Revised: **manual + separate** is preferred.
 - **One less upstream.** No ublue `uupd` dependency — consistent with Steen's
   "nothing between you and Fedora" ethos.
 
-## Implementation sketch
+## Implemented (2026-07-20)
 
-- **Do not** install `uupd`; **do not** enable `uupd.timer`.
-- **Ensure no auto-update timer is enabled** in the image — the Sway Atomic base may
-  ship an rpm-ostree/bootc auto-update timer on by default. Explicitly **mask/disable**
-  `bootc-fetch-apply-updates.timer` (and any `rpm-ostreed-automatic.timer`) in the
-  system preset so updates only happen when invoked.
-- Optional, if wanted later: **per-stream** aliases/functions in `dotfiles-steen`
-  (e.g. `rl-os-update` and a Flatpak-update alias) — but keep them distinct commands,
-  not one aggregate, per this decision.
+Audited the base's timers first (`dnf repoquery -l` on `bootc` + `rpm-ostree`): it
+ships **`bootc-fetch-apply-updates.timer`** and **`rpm-ostreed-automatic.timer`** (plus
+`rpm-ostree-countme.timer`, which is install-count telemetry, not an updater — left
+alone). The Containerfile now **masks both** update timers:
+
+```dockerfile
+RUN systemctl mask bootc-fetch-apply-updates.timer rpm-ostreed-automatic.timer
+```
+
+Mask, not disable: masking symlinks the unit to `/dev/null` so it can't start even if
+something pulls it in — the hard guarantee that nothing updates unattended. A guard
+asserts both symlinks resolve to `/dev/null`, so a base that renamed a timer would fail
+the build rather than silently ship with auto-updates live. `uupd` is not installed.
+
+Optional, if wanted later: **per-stream** aliases in `dotfiles-steen` (e.g.
+`rl-os-update` and a Flatpak-update alias) — kept as distinct commands, not one
+aggregate, per this decision.
 
 ## Verification
 

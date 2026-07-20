@@ -1,6 +1,6 @@
 # Native Synology Drive
 
-- **Status:** in-progress (implemented 2026-07-20; real-boot checks in [0018](0018-first-boot-checklist.md))
+- **Status:** done (CI-green 2026-07-20; real-boot checks in [0018](0018-first-boot-checklist.md))
 - **Created:** 2026-07-19
 - **Area:** image (`Containerfile`, `synology-drive.repo`, `files/synology-drive-opt.conf`)
 - **Depends:** 0002

@@ -1,6 +1,6 @@
 # Bootstrap: a signed, bootable image + CI
 
-- **Status:** in-progress
+- **Status:** done (CI-green 2026-07-20; real-boot checks in [0018](0018-first-boot-checklist.md))
 - **Created:** 2026-07-19
 - **Area:** image (`Containerfile`), CI (`.github/workflows/`), signing
 - **Depends:** 0000 (base image decided)

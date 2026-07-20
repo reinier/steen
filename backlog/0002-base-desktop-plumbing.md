@@ -1,6 +1,6 @@
 # Adapt the Sway Atomic base for niri/DMS
 
-- **Status:** in-progress (implemented 2026-07-20; unverified on real hardware)
+- **Status:** done (CI-green 2026-07-20; real-boot checks in [0018](0018-first-boot-checklist.md))
 - **Created:** 2026-07-19 (reworked for the Sway Atomic base — see 0000)
 - **Area:** image (`Containerfile`)
 - **Depends:** 0000, 0001

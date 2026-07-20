@@ -1,6 +1,6 @@
 # Bazaar + Flatpak/Flathub (replaces native VSCodium)
 
-- **Status:** in-progress (image side done 2026-07-20; Bazaar delegated to dotfiles, 0014)
+- **Status:** done — image side (Flathub remote, CI-green 2026-07-20); Bazaar delegated to dotfiles ([0014](0014-config-and-dotfiles-steen.md))
 - **Created:** 2026-07-19
 - **Area:** image (`Containerfile`, flatpak preinstall, systemd unit)
 - **Depends:** 0002

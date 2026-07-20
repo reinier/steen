@@ -1,7 +1,6 @@
 # niri from Fedora; DMS + quickshell from upstream's stable COPRs
 
-- **Status:** in-progress (implemented 2026-07-20; real-boot checks in
-  [0018](0018-first-boot-checklist.md))
+- **Status:** done (CI-green 2026-07-20; real-boot checks in [0018](0018-first-boot-checklist.md))
 - **Created:** 2026-07-19 (DMS source revised 2026-07-20 — see "Revision" below)
 - **Area:** image (`Containerfile`, `files/avengemedia-*.repo`)
 - **Depends:** 0002

@@ -1,6 +1,6 @@
 # Native Chromium + free codecs
 
-- **Status:** in-progress (implemented 2026-07-20; real-boot checks in [0018](0018-first-boot-checklist.md))
+- **Status:** done (CI-green 2026-07-20; real-boot checks in [0018](0018-first-boot-checklist.md))
 - **Created:** 2026-07-19 (Firefox dropped 2026-07-19)
 - **Area:** image (`Containerfile`), `docs/third-party-repos.md`
 - **Depends:** 0003 (chrome-* app_ids used by niri window-rules / dank-lader)

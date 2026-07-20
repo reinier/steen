@@ -59,33 +59,46 @@ RUN missing=""; \
     echo "base plumbing intact"
 
 # --- niri + DankMaterialShell desktop (backlog/0003) ---
-# The whole desktop core from Fedora stable — no COPRs. This is the payoff of basing
-# on Fedora: niri 26.04 and DankMaterialShell are co-tested Fedora packages rather
-# than rolling git COPR builds.
+# niri, kitty and xwayland-satellite come from Fedora (niri 26.04 is current).
 #
-# `DankMaterialShell` Requires the DMS runtime, so quickshell/dgop/matugen/danksearch/
-# cliphist/cava arrive transitively (asserted below rather than named here).
-# `xwayland-satellite` is required because niri has NO built-in Xwayland — unlike
+# DMS does NOT come from Fedora: Fedora ships DankMaterialShell 1.4.4 (2026-03-21)
+# while upstream is at 1.5.2, and DMS 1.5.x needs quickshell 0.3.x where Fedora still
+# has 0.2.1. So the shell and its toolkit are taken as a MATCHED PAIR from upstream's
+# *stable* (tagged-release) COPRs — deliberately NOT the rolling dms-git/quickshell-git
+# that historically raced ahead of Fedora's quickshell and crashed the shell.
+# Mixing COPR dms 1.5 with Fedora quickshell 0.2.1 is the known-broken combination;
+# the guard below enforces that we never end up in it.
+#
+# xwayland-satellite is required because niri has NO built-in Xwayland — unlike
 # sway/Hyprland it delegates X11 entirely to the satellite, which drives the
 # xorg-x11-server-Xwayland already present in the base. Without it, X11 apps can't run.
+#
+# Repos are added for this one transaction then deleted, so the booted system has no
+# COPRs configured; updates arrive via image rebuilds.
+COPY files/avengemedia-dms.repo files/avengemedia-danklinux.repo /etc/yum.repos.d/
 RUN dnf5 -y install \
-      niri \
-      DankMaterialShell \
-      kitty \
-      xwayland-satellite \
+      niri kitty xwayland-satellite \
+      dms quickshell \
+ && { dnf5 -y install dms-cli \
+      || echo "note: no separate dms-cli package — the CLI ships inside dms"; } \
+ && rm -f /etc/yum.repos.d/avengemedia-dms.repo \
+          /etc/yum.repos.d/avengemedia-danklinux.repo \
  && dnf5 clean all
 
-# Guard: assert the desktop core landed, including the transitive DMS runtime and the
-# `dms` CLI — the Go binary behind `dms ipc`, theming and shell control that every
-# keybind and launcher menu calls. Prints the binaries DankMaterialShell ships so a
-# packaging split is diagnosable from the build log rather than at first boot.
+# Guard: assert the desktop core landed AND that the dms/quickshell pairing is the
+# intended one. `dms` is the Go CLI behind `dms ipc`, theming and shell control that
+# every keybind and launcher menu calls. The version checks are the important part:
+# they fail the build rather than shipping DMS 1.5 against Fedora's quickshell 0.2.1.
 RUN set -e; \
-    rpm -q niri DankMaterialShell kitty xwayland-satellite quickshell >/dev/null; \
-    echo "--- binaries shipped by DankMaterialShell ---"; \
-    rpm -ql DankMaterialShell | grep -E '/s?bin/' || true; \
+    rpm -q niri kitty xwayland-satellite dms quickshell >/dev/null; \
+    ! rpm -q DankMaterialShell >/dev/null 2>&1 \
+      || { echo "ERROR: Fedora's DankMaterialShell is installed alongside COPR dms" >&2; exit 1; }; \
     command -v niri >/dev/null || { echo "ERROR: niri binary missing" >&2; exit 1; }; \
-    command -v dms  >/dev/null || { echo "ERROR: dms CLI missing - look for a separate dms/dms-cli package" >&2; exit 1; }; \
-    echo "desktop core OK: $(rpm -q --qf '%{VERSION}' niri) niri, $(rpm -q --qf '%{VERSION}' DankMaterialShell) DMS"
+    command -v dms  >/dev/null || { echo "ERROR: dms CLI missing" >&2; exit 1; }; \
+    dms_v="$(rpm -q --qf '%{VERSION}' dms)"; qs_v="$(rpm -q --qf '%{VERSION}' quickshell)"; \
+    echo "desktop core: niri $(rpm -q --qf '%{VERSION}' niri), dms ${dms_v}, quickshell ${qs_v}"; \
+    case "$dms_v" in 1.5*) ;; *) echo "ERROR: expected dms 1.5.x, got ${dms_v}" >&2; exit 1;; esac; \
+    case "$qs_v"  in 0.3*) ;; *) echo "ERROR: dms 1.5 needs quickshell 0.3.x, got ${qs_v} (Fedora's is 0.2.1)" >&2; exit 1;; esac
 
 # --- Image-update trust (backlog/0001) ---
 # Steen boots this image, so it must verify its own update stream

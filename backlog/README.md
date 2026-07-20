@@ -50,7 +50,8 @@ Most items are a **translation**, not a fresh design:
    subtract the Sway defaults DMS replaces (waybar/rofi/dunst/swaylock…), swap
    Thunar→nautilus, add `xdg-desktop-portal-gnome`; verify the inherited plumbing.
 3. [0003-niri-dms-desktop.md](0003-niri-dms-desktop.md) — niri + DankMaterialShell
-   + quickshell + kitty + xwayland-satellite, from **Fedora stable**.
+   + quickshell + kitty + xwayland-satellite. niri from Fedora; **dms 1.5.2 +
+   quickshell 0.3.0 as a matched pair from upstream's stable COPRs**.
 4. [0004-greetd-dms-greeter-login.md](0004-greetd-dms-greeter-login.md) — greetd +
    dms-greeter, boot straight into niri (the one desktop COPR exception).
 5. [0005-browsers-and-codecs.md](0005-browsers-and-codecs.md) — native chromium +

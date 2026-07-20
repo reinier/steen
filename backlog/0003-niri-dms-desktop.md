@@ -1,84 +1,79 @@
-# niri + DankMaterialShell desktop, from Fedora stable
+# niri from Fedora; DMS + quickshell from upstream's stable COPRs
 
 - **Status:** in-progress (implemented 2026-07-20; real-boot checks in
   [0018](0018-first-boot-checklist.md))
-- **Created:** 2026-07-19
-- **Area:** image (`Containerfile`)
+- **Created:** 2026-07-19 (DMS source revised 2026-07-20 — see "Revision" below)
+- **Area:** image (`Containerfile`, `files/avengemedia-*.repo`)
 - **Depends:** 0002
-- **Related:** the proven stable-Fedora layering in
-  [`dotfiles-bluefin-niri/README.md`](../../conium/dotfiles-bluefin-niri) +
-  `notes/gnome-coexistence.md`; rheniite
-  [`backlog/stabilize-git-packages.md`](../../rheniite/rheniite/backlog/stabilize-git-packages.md)
-  (now superseded — its "best case" was COPR; ours is Fedora main).
+- **Related:** the stable-Fedora layering in
+  [`dotfiles-bluefin-niri`](../../conium/dotfiles-bluefin-niri) and its
+  `notes/gnome-coexistence.md` (the 2026-06-12 breakage that motivates the version
+  guard below); rheniite
+  [`backlog/stabilize-git-packages.md`](../../rheniite/rheniite/backlog/stabilize-git-packages.md).
 
-## The payoff item
-
-This is *why* Steen exists. The entire desktop core is one `dnf5 install` from
-**Fedora main** — no `yalter/niri-git`, no `avengemedia/danklinux`, no
-`avengemedia/dms-git`:
+## What's installed
 
 ```dockerfile
-RUN dnf5 -y install \
-      niri DankMaterialShell quickshell kitty xwayland-satellite \
- && dnf5 clean all
+# Fedora:  niri kitty xwayland-satellite
+# COPR:    dms (avengemedia/dms) + quickshell (avengemedia/danklinux)
 ```
 
-`DankMaterialShell` `Requires` the whole DMS runtime, so it transitively pulls
-**quickshell, dgop, matugen, danksearch, cliphist, cava** — the same set
-`dotfiles-bluefin-niri` relies on. Naming `quickshell` explicitly is belt-and-
-braces; drop it if the dep is reliable.
-
-## Points to nail down
-
-- **Package name casing:** the Fedora binary package is `DankMaterialShell`
-  (capitalized), `1.4.4` on F44/F45.
-- **The `dms` CLI comes with it.** `dms` is the Go-based CLI+daemon that powers
-  `dms ipc call …`, `dms restart`, and matugen theming — every dank-lader entry
-  and niri keybind that talks to the shell depends on it. The old COPRs split this
-  into `dms` (QML shell) + `dms-cli` (Go binary), which is why Zirconium installed
-  `dms dms-cli dms-greeter dgop dsearch quickshell-git`. Fedora folds the CLI into
-  (or auto-pulls it with) `DankMaterialShell`: proof is that `dotfiles-bluefin-niri`
-  installs **only** `DankMaterialShell` and its dank-lader `dms ipc` calls work. So
-  don't name a separate CLI package — but **verify at build time** (`which dms`,
-  `dms ipc call spotlight toggle`) and, if a distinct `dms-cli` subpackage turns out
-  to exist on F44, add it. (`dms-greeter` is a separate COPR package — 0004.)
-- **`xwayland-satellite`** is needed for X11 apps under niri (bluefin layers it).
-- **`kitty`** is Steen's terminal (rheniite baked it; carried over).
-- **Version:** niri `26.04`, DMS/quickshell whatever F44 currently ships — the
-  point is they're **co-tested together**, unlike the git COPRs that raced ahead
-  and crashed the shell (bluefin's `2026-06-12` breakage note).
-
-## Config caveat (hand-off to 0014)
-
-DMS normally generates niri's config via `dms setup`, which **can't run at image
-build time**. On an atomic base the config must be **vendored** — exactly what
-`dotfiles-bluefin-niri` does (`dot_config/niri/config.kdl` is a vendored
-DMS-generated base with a final `include "local.kdl"`). Decide in
-[0014](0014-config-and-dotfiles-steen.md) whether Steen bakes a default config
-into `/usr/share/steen/...` (like Zirconium's zdots) or ships it purely via
-`dotfiles-steen`. **Do not** carry Zirconium's zdots — it's authored against
-git-HEAD DMS/niri and will skew against these stable binaries.
-
-## Implemented (2026-07-20)
-
-`Containerfile` installs `niri DankMaterialShell kitty xwayland-satellite` from Fedora
-stable — **no COPRs**. `quickshell` and the rest of the DMS runtime are left to come in
-transitively and are *asserted* rather than named. A guard step then checks the core
-landed, prints the binaries `DankMaterialShell` ships, and hard-fails if the **`dms`
-CLI** is missing (with a hint to look for a split `dms`/`dms-cli` package) — so a
-packaging surprise shows up in the build log, not at first boot.
-
-**Why `xwayland-satellite` is not optional:** niri has no built-in Xwayland (unlike
-sway/Hyprland); it delegates X11 entirely to the satellite, which drives the
+**`xwayland-satellite` is not optional.** niri has *no* built-in Xwayland — unlike
+sway/Hyprland it delegates X11 entirely to the satellite, which drives the
 `xorg-x11-server-Xwayland` already in the base. Installing it is necessary but not
-sufficient — something must *start* it (niri config / dotfiles), which is why that's a
-first-boot check.
+sufficient: something must *start* it (niri config / dotfiles), which is why "an X11
+app actually displays" is a first-boot check.
+
+## Revision (2026-07-20): why DMS no longer comes from Fedora
+
+The item originally took the whole desktop from Fedora main — the headline win of
+basing on Fedora. That held for niri and still does (**26.04**, current). It did
+**not** hold for DMS:
+
+| | Fedora 44 | Upstream stable |
+|---|---|---|
+| DankMaterialShell / dms | **1.4.4** (2026-03-21) | **1.5.2** (2026-07-18) |
+| quickshell | **0.2.1^git20260209** | **0.3.0** (2026-05-04) |
+
+Fedora is ~4 months and five releases behind, so Steen takes DMS from upstream.
+
+**The trap this item now guards against:** DMS 1.5.x is built against quickshell
+0.3.x. Installing COPR `dms` 1.5 on top of Fedora's quickshell 0.2.1 is precisely the
+skew that crashed the shell on 2026-06-12 and pushed `dotfiles-bluefin-niri` off the
+DMS COPR. So dms and quickshell are taken **as a matched pair** from upstream's
+**stable, tagged-release** COPRs (`avengemedia/dms` + `avengemedia/danklinux`) —
+explicitly *not* the rolling `dms-git`/`quickshell-git`.
+
+The Containerfile guard **enforces** this: it fails the build unless `dms` is 1.5.x
+*and* `quickshell` is 0.3.x, and unless Fedora's `DankMaterialShell` is absent (two
+shells installed side by side would be worse than either alone). The pairing can
+therefore never silently regress.
+
+## Consequences
+
+- **Steen's desktop core is no longer COPR-free.** `avengemedia/danklinux` was already
+  going to be pulled in for `dms-greeter` (0004), so this adds one repo
+  (`avengemedia/dms`) rather than a whole new class of dependency — but the "100%
+  Fedora desktop" claim in the README and 0000 is retired. Both repos are added for the
+  one transaction and **deleted afterwards**; the booted system has no COPRs configured.
+- **We now own version-matching.** When DMS releases, check quickshell's required
+  version before bumping. The guard turns a mismatch into a failed build, not a broken
+  desktop.
+- **Escape hatch:** if the COPR pairing proves unstable, drop back to Fedora's
+  `DankMaterialShell` + `quickshell` (older but co-tested) by reverting this layer.
+
+## The `dms` CLI
+
+`dms` is the Go CLI/daemon behind `dms ipc`, theming and shell control — every
+dank-lader entry and niri keybind depends on it. Fedora's `DankMaterialShell` shipped
+`/usr/bin/dms` directly (confirmed in the build log). The COPR historically split
+`dms` and `dms-cli`, so the install tolerantly adds `dms-cli` if such a package exists
+and the guard hard-fails if `command -v dms` comes up empty either way.
 
 ## Verification
 
-CI (done): packages resolve, `quickshell` arrives transitively, `niri` and `dms`
-binaries exist, image lints and signs.
+CI (done): packages resolve, versions match the guarded pairing, `niri`/`dms` binaries
+exist, image lints and signs.
 
-Real hardware (tracked in [0018](0018-first-boot-checklist.md)): DMS bar/launcher/
-notifications come up, matugen theming applies, `niri msg` and `dms ipc` respond, and
-an X11 app actually displays.
+Real hardware ([0018](0018-first-boot-checklist.md)): DMS bar/launcher/notifications
+come up, matugen theming applies, `niri msg` and `dms ipc` respond, an X11 app displays.

@@ -7,7 +7,9 @@ Where a delta needs work, the target backlog item is named.
 
 Steen's base and stack are decided in
 [`../backlog/0000-base-image-choice.md`](../backlog/0000-base-image-choice.md):
-**Fedora Sway Atomic** base, **niri + DMS from Fedora stable** (not git COPRs).
+**Fedora Sway Atomic** base; **niri from Fedora**, **DMS + quickshell from upstream's
+stable tagged-release COPRs** (not git COPRs) — see
+[`0003`](../backlog/0003-niri-dms-desktop.md).
 
 ---
 
@@ -15,7 +17,8 @@ Steen's base and stack are decided in
 
 The delta you notice most. Zirconium runs niri/DMS from git-HEAD COPRs
 (`yalter/niri-git`, `avengemedia/{danklinux,dms-git}`) — thousands of commits ahead
-of Steen's Fedora stable (**DMS `1.4.4`, niri `26.04`, quickshell** as F44 ships).
+of Steen's tagged releases (**niri `26.04`** from Fedora; **dms `1.5.2` + quickshell
+`0.3.0`** from upstream's stable COPRs — Fedora's own DMS was 4 months stale at 1.4.4).
 
 - **Fast → calm.** No same-day DMS features/fixes, but also none of the "woke up to
   a broken shell" churn — the `2026-06-12` breakage that pushed `dotfiles-bluefin-niri`

@@ -14,8 +14,9 @@
 Chosen: **greetd + dms-greeter**, boots straight into niri with **no session
 picker** — the exact Zirconium/rheniite feel. The caveat, accepted deliberately:
 **`dms-greeter` is not in Fedora** — it comes from the `avengemedia/danklinux`
-COPR. So Steen, whose desktop core is otherwise 100% Fedora, takes **one
-desktop-layer COPR** here. Document it plainly in the README and
+COPR — but as of 0003's revision `avengemedia/danklinux` is **already** enabled for
+quickshell 0.3.0, so dms-greeter costs no new repo. **Match its version to dms 1.5.2**
+(both come from the same upstream release train). Document it plainly in the README and
 `docs/third-party-repos.md` (see 0005 for that doc's start) so the exception is
 visible, not smuggled.
 

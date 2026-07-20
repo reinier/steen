@@ -6,8 +6,9 @@ compositor — and **[DankMaterialShell](https://github.com/AvengeMedia/DankMate
 which provides the bar, launcher, notifications, and settings. It boots straight
 into a complete, ready-to-use desktop.
 
-Everything is built from **stable Fedora packages**, so the desktop stays
-co-tested and predictable rather than chasing bleeding-edge builds.
+Everything is built from **stable, tagged releases** — niri from Fedora, and
+DankMaterialShell from its upstream stable channel — so the desktop stays
+predictable rather than chasing nightly builds.
 
 > ## 🚧 Work in progress — not usable yet
 >

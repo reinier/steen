@@ -42,24 +42,33 @@ expect small deltas, not a rewrite.
 ([decision below]), so niri would have nothing to load — `local/*.kdl` are includes,
 not a standalone config.
 
-## Resolved (2026-07-20): DMS generates the base, dotfiles ship only overrides
+## Resolved (2026-07-20, the hard way): vendor the config — `dms setup` can't run on atomic
 
-The earlier plan was to vendor bluefin's `config.kdl` + `dms/*.kdl`. **Rejected in favour
-of `dms setup`** — vendoring a copy of DMS's defaults drifts against the installed DMS
-version (the 1.4→1.5 skew), which is exactly the trap this whole item exists to avoid.
+Two wrong turns before landing here, both instructive:
 
-Instead (implemented in the repo):
+1. Planned to vendor bluefin's config → **switched to `dms setup`** on the theory it'd
+   generate a version-correct base at first launch, avoiding drift.
+2. On real hardware `dms setup` **failed outright**: DMS's CLI policy
+   (`/usr/share/dms/cli-policy.json`) **disables it on ostree/immutable systems** —
+   *"Detected immutable system: /run/ostree-booted is present … disabled on image-based
+   systems. Use your distro-native workflow for system-level changes."* There is **no
+   runtime config generation on Steen at all.**
 
-- `dotfiles-steen` ships **only** `local.kdl` + `local/*.kdl` (the overrides), same as
-  rheniite.
-- `run_once_after_niri-dms-config.sh` runs **`dms setup --non-interactive`**, which
-  deploys the version-correct `config.kdl` + the required `dms/*.kdl` **non-destructively**
-  ("only writes files that don't already exist or are empty"), then **appends
-  `include "local.kdl"`** to `config.kdl` (DMS's default doesn't include a user file), so
-  overrides load last. Idempotent, so it's correct regardless of DMS's include behaviour.
-- Verified from the `dms` binary: `dms setup` exists with a `--non-interactive` flag and
-  deploys the niri "main config" + defaults; still to confirm on real hardware that the
-  generated config.kdl + our appended include validate under DMS 1.5.2 ([0018](0018-first-boot-checklist.md) §G).
+So the config **must be shipped statically** — which is precisely what bluefin's
+"vendored because `dms setup` can't run on the atomic base" comment meant all along.
+
+Implemented: `dotfiles-steen` **vendors** `config.kdl` + `dms/binds.kdl` +
+`dms/create_{colors,layout,alttab}.kdl` (from bluefin); chezmoi deploys them; the
+dms-setup script is deleted. The 1.4→1.5 drift is handled by patching known deltas
+(`Mod+Y`: `dankdash` → `dash toggle wallpaper`, confirmed against the 1.5.2 binary) and
+flagged for validation — a dead DMS keybind = another renamed IPC verb to fix in
+`dms/binds.kdl`. The DMS-owned dynamic includes are `optional=true` so a not-yet-
+generated file never breaks niri startup.
+
+**Open alternative if drift becomes a maintenance burden:** `/run/ostree-booted` is
+*absent* during the container build, so `dms setup` might run at **image build time** —
+letting the image bake version-correct defaults on every DMS bump. Unverified (needs
+compositor detection at build); parked.
 
 ## What was copied vs adapted
 

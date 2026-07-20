@@ -22,6 +22,13 @@ predictable rather than chasing nightly builds.
 
 Steen is image-based: you install a Fedora atomic desktop and then rebase onto it.
 
+**Start from the [Fedora Sway Atomic](https://fedoraproject.org/atomic-desktops/sway/)
+ISO.** Steen is built directly on top of that image, so the rebase is a minimal,
+same-lineage delta (only Steen's layers download — no throwaway GNOME as you'd get
+from Silverblue), and stock Sway Atomic doubles as a known-good reference desktop if
+you need to isolate a hardware issue. Any Fedora atomic desktop *works* — `bootc
+switch` replaces the whole image — but Sway Atomic is the efficient choice.
+
 ```sh
 sudo bootc switch ghcr.io/reinier/steen:latest
 sudo systemctl reboot

@@ -10,8 +10,9 @@
 
 ## Port + one new wrinkle
 
-Bake the toolkit so it's present at boot and updates with the image (rheniite moved
-this off per-user Homebrew):
+Bake the toolkit so it's present at boot and updates with the image. This **is** the
+CLI baseline — Steen ships no Homebrew ([0015](0015-no-homebrew.md)), so nothing here
+falls back to brew:
 
 - **From Fedora main:** `fish eza bat jq zip fuse-sshfs`.
 - **From Terra:** `starship lazygit yazi`.
@@ -27,14 +28,13 @@ depends on live Terra updates; otherwise remove-after like the other sources.
 > if so, trim them off Terra and shrink the third-party surface to just
 > `starship` (or drop Terra entirely).
 
-## Relationship to Homebrew (0015)
+## No Homebrew (0015)
 
-Baking the toolkit here is what lets brew stay **thin** — brew is not load-bearing
-for the core CLI experience, only for the long tail Fedora/Flatpak don't package
-(`claude-code`, `framework-tool`). See [0015](0015-homebrew.md). Ensure PATH order
-resolves these image copies **before** any brew copies.
+There is no brew to shadow these or be shadowed by — this toolkit is the whole CLI
+baseline. Anything Fedora/Terra doesn't package goes through distrobox (0017) or the
+image, not brew. See [0015](0015-no-homebrew.md).
 
 ## Verification
 
 - `fish`, `starship`, `eza`, `bat`, `jq`, `lazygit`, `yazi`, `sshfs` all on `PATH`
-  and runnable in a fresh login shell, resolving to the **image** binaries.
+  and runnable in a fresh login shell (image binaries; no brew present).

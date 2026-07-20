@@ -18,7 +18,7 @@ integration (real host terminal in VSCodium — rheniite's stated reason for goi
 native) for a simpler, sandboxed, self-service app model.
 
 > Consequence to accept: a Flatpak VSCodium's integrated terminal is **sandboxed**,
-> not the host shell — brew/`op`/podman/distrobox won't be on its `PATH` the way
+> not the host shell — `op`/podman/distrobox won't be on its `PATH` the way
 > rheniite's native codium had them. If that matters, either keep a Flatpak
 > `--talk-name`/`flatpak-spawn` shim in dotfiles or reconsider native codium. Note
 > it and move on.

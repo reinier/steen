@@ -68,8 +68,13 @@ greetd + dms-greeter in **0004** — disable/mask the base's DM there, not here.
 
 ## Fonts
 
-Base fonts cover Latin + emoji. Bake a **Nerd Font** (JetBrainsMono Nerd — rheniite
-got it via a brew cask; bake it so it's present at boot for kitty/DMS glyphs).
+Base fonts cover Latin + emoji, but not the **Nerd Font** icon glyphs kitty/DMS use.
+Fedora ships only plain `jetbrains-mono-fonts` (no Nerd glyphs), so bake the
+**JetBrainsMono Nerd Font from the upstream release archive** (pinned version):
+download it in the `Containerfile`, unpack into `/usr/share/fonts/`, `fc-cache`. This
+is brew-free and repo-free (the keyd source-build pattern). rheniite got this via a
+brew cask; Steen ships no brew (see [0015](0015-no-homebrew.md)). *(Alternative: the
+`che/nerd-fonts` COPR — rejected to avoid another third-party repo.)*
 
 ## Verification
 

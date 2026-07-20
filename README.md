@@ -33,8 +33,7 @@ sudo systemctl reboot
 - **Browser** — Chromium, with full media codecs.
 - **Apps** — 1Password, Synology Drive, and **Bazaar** for installing Flatpaks
   from Flathub.
-- **Terminal toolkit** — fish, starship, eza, bat, lazygit, yazi, and friends,
-  plus Homebrew for anything else.
+- **Terminal toolkit** — fish, starship, eza, bat, lazygit, yazi, and friends.
 
 ## Updating
 
@@ -43,7 +42,6 @@ You update each part yourself, whenever you want — nothing changes unattended:
 ```sh
 sudo bootc upgrade     # the OS
 flatpak update         # your apps
-brew upgrade           # CLI tools
 ```
 
 ## Configuration

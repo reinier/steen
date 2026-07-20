@@ -37,14 +37,14 @@ changes shape.
 
 - **Zirconium:** enables **uupd** (Universal Blue's unified updater — image +
   Flatpaks + brew in one timer-driven pass) and *disables* bootc auto-update.
-- **Steen (Sway Atomic base):** no uupd. Out of the box that's plain `bootc upgrade`
-  (or bootc's own update timer) for the OS, with Flatpak and brew updating
-  **separately**. "Keep my system current" goes from one thing to three.
+- **Steen (Sway Atomic base):** no uupd, and no brew either. Two streams updated
+  **separately**: the OS and Flatpaks. "Keep my system current" goes from one thing
+  to two.
 
-**Decided:** three independent streams (`bootc upgrade` / `flatpak update` /
-`brew upgrade`), updated **manually and separately** — no uupd, no auto-update timer.
-The fragmentation is intentional: independent cadence, easy rollback, one less
-upstream. → [`0016-system-updates.md`](../backlog/0016-system-updates.md).
+**Decided:** two independent streams (`bootc upgrade` / `flatpak update`), updated
+**manually and separately** — no uupd, no auto-update timer, no brew stream. The
+fragmentation is intentional: independent cadence, easy rollback, one less upstream.
+→ [`0016-system-updates.md`](../backlog/0016-system-updates.md).
 
 ---
 
@@ -77,8 +77,9 @@ change.
 
 - **Login experience** — identical (greetd + dms-greeter, straight into niri):
   [`0004`](../backlog/0004-greetd-dms-greeter-login.md).
-- **Homebrew** — Zirconium supplied it via its base; Steen bakes it thin itself:
-  [`0015`](../backlog/0015-homebrew.md).
+- **Homebrew** — Zirconium supplied it via its base; Steen ships **none**. The
+  toolkit is baked from Fedora/Terra and ad-hoc tooling moves to distrobox:
+  [`0015`](../backlog/0015-no-homebrew.md).
 - **App set** — deliberate ([`0005`](../backlog/0005-browsers-and-codecs.md)–
   [`0012`](../backlog/0012-printer-gui.md)); notably Bazaar/Flatpak replaces native
   VSCodium ([`0011`](../backlog/0011-bazaar-flatpak-appstore.md)).

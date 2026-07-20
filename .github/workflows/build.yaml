@@ -29,8 +29,22 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # Pulled as its own retried step: quay's CDN intermittently drops the
+      # connection mid-blob ("unexpected EOF"), which failed two builds already.
+      # Pulling the floating :44 tag here also keeps "always latest F44" (0001).
+      - name: Pull base image (retried — quay CDN is flaky)
+        run: |
+          img=quay.io/fedora-ostree-desktops/sway-atomic:44
+          for i in 1 2 3 4 5; do
+            if podman pull "$img"; then exit 0; fi
+            echo "::warning::base pull attempt $i failed; retrying"
+            sleep $((i * 15))
+          done
+          echo "::error::base pull failed after 5 attempts"
+          exit 1
+
       - name: Build image
-        run: podman build --pull=always --platform=linux/amd64 -f Containerfile -t "${IMAGE_NAME}:latest" .
+        run: podman build --platform=linux/amd64 -f Containerfile -t "${IMAGE_NAME}:latest" .
 
       - name: Lint
         run: podman run --rm --entrypoint bootc "${IMAGE_NAME}:latest" container lint

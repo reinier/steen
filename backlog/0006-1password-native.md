@@ -36,14 +36,27 @@ carefully:
   groups were gone — `1Password-BrowserSupport` was setgid to a dead GID (browser
   integration's `SO_PEERCRED` peer check failed) and `op` was setgid to **gid 1000, the
   first user's own group** (broken + a small privilege bug).
-  - Fix: ship `files/1password-sysusers.conf` (`g onepassword 923`, `onepassword-cli
-    924`, `onepassword-mcp 925` — **fixed** GIDs) to `/usr/lib/sysusers.d/`, run
-    `systemd-sysusers` on it *before* the dnf install (the `%post` groupadds are
+  - Fix: ship `files/1password-sysusers.conf` (**fixed** GIDs) to `/usr/lib/sysusers.d/`,
+    run `systemd-sysusers` on it *before* the dnf install (the `%post` groupadds are
     conditional, so they skip), then `chgrp` to the fixed-GID groups. The drop-in
     recreates the groups on every boot with the exact GIDs the setgid bits reference.
-  - The guard now asserts the groups are at 923/924 and the binaries' setgid GIDs match
-    — so a GID collision or a regressed group fails the build. This is what the original
-    guard missed (it checked *that* a setgid bit existed, not *which group* it pointed at).
+  - The guard asserts the groups' GIDs and the binaries' setgid GIDs match — so a GID
+    collision or a regressed group fails the build. This is what the original guard
+    missed (it checked *that* a setgid bit existed, not *which group* it pointed at).
+
+- **The GID must be ≥ 1000** (`onepassword` 1500, `-cli` 1501, `-mcp` 1502). Found on
+  real hardware (2026-07-20): with the groups at **923** (a system gid I picked to avoid
+  colliding with the user), browser integration failed with *"invalid group attempted to
+  connect, rejecting remote"* + `PipeAuthError(NoCreds)`. 1Password **explicitly rejects
+  a helper group whose gid is < 1000** as untrusted
+  ([1P community](https://www.1password.community/developers-69/why-the-requirement-for-group-id-1000-24469),
+  [ublue #94](https://github.com/ublue-os/homebrew-tap/issues/94)). Every other check
+  (setgid honored, manifest, ptrace) was correct; only the number was wrong.
+  - **Upgrade caveat (ostree /etc staleness):** an image that already created
+    `onepassword` at the old gid leaves it in `/etc/group`; sysusers.d won't change an
+    existing group's gid on upgrade, so an already-installed machine needs a one-time
+    `sudo groupmod -g 1500 onepassword` (+ `-cli 1501`, `-mcp 1502`) then a re-login to
+    match the new baked setgid. Fresh installs are correct from first boot.
 - **x86_64 only** (aarch64 ships CLI only). Re-verify the `/opt` vs `/usr` layout at
   version bumps (it has flip-flopped before).
 

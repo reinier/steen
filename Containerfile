@@ -340,10 +340,10 @@ RUN set -e; \
     test -g /usr/lib/opt/1Password/1Password-BrowserSupport || { echo "ERROR: 1Password-BrowserSupport lost its setgid bit" >&2; exit 1; }; \
     test -g /usr/bin/op || { echo "ERROR: op lost its setgid bit" >&2; exit 1; }; \
     test -f /usr/lib/sysusers.d/1password-steen.conf || { echo "ERROR: 1password sysusers drop-in missing (groups won't survive a bootc switch)" >&2; exit 1; }; \
-    getent group onepassword     | grep -q ':923:' || { echo "ERROR: onepassword group not at fixed gid 923 (collision? -> pick another)" >&2; exit 1; }; \
-    getent group onepassword-cli | grep -q ':924:' || { echo "ERROR: onepassword-cli group not at fixed gid 924" >&2; exit 1; }; \
-    [ "$(stat -c %g /usr/lib/opt/1Password/1Password-BrowserSupport)" = 923 ] || { echo "ERROR: BrowserSupport setgid is $(stat -c '%g(%G)' /usr/lib/opt/1Password/1Password-BrowserSupport), not onepassword(923)" >&2; exit 1; }; \
-    [ "$(stat -c %g /usr/bin/op)" = 924 ] || { echo "ERROR: op setgid is $(stat -c '%g(%G)' /usr/bin/op), not onepassword-cli(924)" >&2; exit 1; }; \
+    getent group onepassword     | grep -q ':1500:' || { echo "ERROR: onepassword group not at fixed gid 1500 (must be >=1000 for 1Password; collision? -> pick another >=1000)" >&2; exit 1; }; \
+    getent group onepassword-cli | grep -q ':1501:' || { echo "ERROR: onepassword-cli group not at fixed gid 1501" >&2; exit 1; }; \
+    [ "$(stat -c %g /usr/lib/opt/1Password/1Password-BrowserSupport)" = 1500 ] || { echo "ERROR: BrowserSupport setgid is $(stat -c '%g(%G)' /usr/lib/opt/1Password/1Password-BrowserSupport), not onepassword(1500)" >&2; exit 1; }; \
+    [ "$(stat -c %g /usr/bin/op)" = 1501 ] || { echo "ERROR: op setgid is $(stat -c '%g(%G)' /usr/bin/op), not onepassword-cli(1501)" >&2; exit 1; }; \
     test -f /usr/lib/sysctl.d/60-1password-ptrace.conf || { echo "ERROR: ptrace_scope drop-in missing" >&2; exit 1; }; \
     command -v keyd >/dev/null || { echo "ERROR: keyd binary missing" >&2; exit 1; }; \
     test -f /usr/lib/systemd/system/keyd.service || { echo "ERROR: keyd.service missing — FORCE_SYSTEMD did not take" >&2; exit 1; }; \

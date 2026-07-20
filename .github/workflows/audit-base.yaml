@@ -1,0 +1,48 @@
+# One-off probe: what does the Sway Atomic base actually ship?
+# Feeds the audits in backlog/0002 (adapt the base) and backlog/0017 (hardware
+# niceties). Manual dispatch only — delete once the audits are recorded.
+name: Audit base image
+
+on:
+  workflow_dispatch:
+
+jobs:
+  audit:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Probe the base
+        run: |
+          img=quay.io/fedora-ostree-desktops/sway-atomic:44
+          podman pull -q "$img"
+
+          echo "===== PACKAGE COUNT ====="
+          podman run --rm "$img" rpm -qa | wc -l
+
+          echo "===== TARGETED PRESENCE ====="
+          podman run --rm "$img" bash -c '
+            for p in \
+              sway waybar rofi wofi fuzzel dunst mako swaylock swayidle swaybg foot Thunar nautilus nautilus-python \
+              kanshi light brightnessctl playerctl wl-clipboard imv firefox chromium \
+              pipewire wireplumber xdg-desktop-portal xdg-desktop-portal-wlr xdg-desktop-portal-gtk xdg-desktop-portal-gnome \
+              xdg-terminal-exec polkit polkit-gnome mate-polkit lxqt-policykit gnome-keyring gcr gcr3 \
+              NetworkManager NetworkManager-wifi systemd-resolved firewalld flatpak plymouth tuned zram-generator \
+              fwupd fprintd bolt ddcutil podman distrobox toolbox \
+              greetd sddm lightdm gdm \
+              niri DankMaterialShell quickshell kitty xwayland-satellite xorg-x11-server-Xwayland \
+              jetbrains-mono-fonts google-noto-color-emoji default-fonts fontconfig \
+              cups cups-pk-helper system-config-printer avahi nss-mdns tailscale keyd; do
+              if rpm -q "$p" >/dev/null 2>&1; then
+                printf "PRESENT  %-32s %s\n" "$p" "$(rpm -q --qf %{VERSION} "$p")"
+              else
+                printf "absent   %s\n" "$p"
+              fi
+            done'
+
+          echo "===== WAYLAND SESSIONS ====="
+          podman run --rm "$img" bash -c 'ls -1 /usr/share/wayland-sessions/ 2>/dev/null || echo none'
+
+          echo "===== DISPLAY MANAGER ====="
+          podman run --rm "$img" bash -c 'readlink -f /usr/lib/systemd/system/display-manager.service 2>/dev/null || echo "no display-manager.service"'
+
+          echo "===== PORTAL / POLKIT / GREET packages ====="
+          podman run --rm "$img" bash -c 'rpm -qa --qf "%{NAME}\n" | grep -Ei "portal|polkit|greet|sddm|fonts$" | sort'

@@ -83,14 +83,14 @@ the workflow's `--sign-passphrase-file=/dev/null`.
 - **No pinning.** `FROM` floats on `sway-atomic:44`, always latest F44. Steen also
   publishes **only `:latest`** — no dated snapshot tags. `bootc rollback` is the
   recovery path.
-- **Package is public.** `ghcr.io/reinier/steen` must be public: GHCR packages default
-  to *private*, and a private package would make `bootc switch` fail without registry
-  auth — breaking the documented install. (The repo is already public, which is what
-  makes Actions minutes free; public packages also keep storage/egress free.)
+- **Package is public** — confirmed already public on first push. This matters beyond
+  cost: a private package would make `bootc switch` fail without registry auth,
+  breaking the documented install. (The repo is public too, which is what makes
+  Actions minutes free.)
 
-**Remaining before this item is done:** set the package public (one-time, via the
-GitHub UI — there's no REST endpoint for container-package visibility), then run the
-end-to-end check below: `bootc switch` on a real machine/VM.
+**Deferred:** the end-to-end `bootc switch` on a real machine/VM (Verification below)
+is intentionally postponed until enough of the desktop has landed to be worth booting.
+Do it once 0002–0004 are in — not now.
 
 ## Verification
 

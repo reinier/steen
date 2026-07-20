@@ -25,9 +25,10 @@ visible, not smuggled.
 
 ## Implementation sketch (port from Zirconium)
 
-0. **Remove the base's display manager:** `dnf5 -y remove sddm`. The audit confirmed
-   the base logs in via **`sddm` 0.21.0** (`sddm-wayland-sway` already went with sway
-   in 0002), and the only wayland session was `sway.desktop`. See
+0. **The base's display manager is already gone.** The base logged in via **`sddm`
+   0.21.0** with only a `sway.desktop` session; 0002's removal of the Sway stack
+   orphaned `sddm` and dnf autoremoved it. So there is **nothing to remove here** —
+   just verify no display-manager unit remains, then install greetd below. See
    [`../notes/base-audit-sway-atomic-44.md`](../notes/base-audit-sway-atomic-44.md).
 1. Install `greetd` (Fedora, absent from the base) + `dms-greeter` (COPR
    `avengemedia/danklinux`, added for the one install then the `.repo` removed — same

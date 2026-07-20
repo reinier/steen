@@ -89,9 +89,18 @@ The `Containerfile` now:
   `sddm` (0004 swaps it for greetd + dms-greeter).
 - **Adds** `xdg-desktop-portal-gnome`, `nautilus`, and the JetBrainsMono **Nerd
   Font** baked from the upstream release (pinned `v3.4.0`, `ARG NERD_FONT_VERSION`).
-- **Guards** the removals with an `rpm -q` assertion so a dependency cascade that
-  takes out pipewire/NetworkManager/portals/polkit/keyring/fwupd/etc. fails the
-  build instead of shipping a quietly broken image.
+- **Guards** the removals with an assertion (naming any missing package) so a
+  dependency cascade that takes out pipewire/NetworkManager/portals/polkit/keyring/
+  fwupd/etc. fails the build instead of shipping a quietly broken image.
+
+**The guard immediately earned its keep.** The first build failed on it: `dnf` removes
+orphaned dependencies as well as reverse-dependencies, so the subtraction pulled **21**
+packages, not the 12 named — including `system-config-printer` (an orphan of the Sway
+desktop; 0012 now reinstalls it), `sddm` (orphaned with its sway session — harmless,
+0004 replaced it anyway), `blueman` (it required `dunst` as its notification daemon;
+DMS provides the Bluetooth UI), plus `grimshot`, `sway-config-fedora`, `sway-systemd`,
+`thunar-archive-plugin` and `firefox-langpacks`. Without the guard this would have
+shipped as a silently degraded image.
 
 Audit corrections worth noting: most base-desktop plumbing was already present
 (so nothing was reinstalled), the polkit agent is **`lxqt-policykit`**, and the

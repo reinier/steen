@@ -7,8 +7,12 @@ FROM quay.io/fedora-ostree-desktops/sway-atomic:44
 # lock, and niri replaces the compositor, so subtract Sway's stack. Package names
 # audited against sway-atomic:44 — see notes/base-audit-sway-atomic-44.md.
 #
-# `sddm` itself stays for now: swapping it for greetd + dms-greeter is 0004's job.
-# `sddm-wayland-sway` goes with sway (it's the sway session for sddm).
+# NOTE: dnf also drops orphaned dependencies, so this pulls ~21 packages, not the 12
+# named. Observed extras: `sddm` (orphaned once its sway session goes — fine, 0004
+# replaces it with greetd anyway), `grimshot`, `sway-config-fedora`, `sway-systemd`,
+# `thunar-archive-plugin`, `firefox-langpacks`, and `blueman` (it required dunst as its
+# notification daemon; DMS provides the Bluetooth UI instead).
+# `system-config-printer` is dragged out too — 0012 reinstalls it with `cups-pk-helper`.
 # `firefox` goes by decision — Steen ships Chromium only (0005).
 # `xdg-desktop-portal-wlr` goes so portal backend selection under niri is
 # unambiguous (we add -gnome below; -gtk stays).
@@ -40,14 +44,19 @@ RUN curl -fsSL -o /tmp/JetBrainsMono.tar.xz \
  && fc-cache -f /usr/share/fonts/jetbrainsmono-nerd
 
 # Guard: the removals above must not have dragged the desktop plumbing out with them
-# (dnf removes reverse-dependencies too). Fails the build loudly if anything critical
-# went missing, rather than shipping a quietly broken image.
-RUN rpm -q \
-      pipewire wireplumber NetworkManager systemd-resolved firewalld \
-      xdg-desktop-portal xdg-desktop-portal-gtk xdg-desktop-portal-gnome \
-      polkit gnome-keyring flatpak plymouth \
-      fwupd fprintd bolt cups system-config-printer nautilus \
-      >/dev/null
+# (dnf removes reverse-dependencies *and* orphaned dependencies). Names what's missing
+# so a future cascade is self-diagnosing instead of a bare exit 1.
+RUN missing=""; \
+    for p in pipewire wireplumber NetworkManager systemd-resolved firewalld \
+             xdg-desktop-portal xdg-desktop-portal-gtk xdg-desktop-portal-gnome \
+             polkit gnome-keyring flatpak plymouth \
+             fwupd fprintd bolt cups nautilus; do \
+      rpm -q "$p" >/dev/null 2>&1 || missing="$missing $p"; \
+    done; \
+    if [ -n "$missing" ]; then \
+      echo "ERROR: base adaptation removed required packages:$missing" >&2; exit 1; \
+    fi; \
+    echo "base plumbing intact"
 
 # --- Image-update trust (backlog/0001) ---
 # Steen boots this image, so it must verify its own update stream

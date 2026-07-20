@@ -32,7 +32,7 @@ depends on live Terra updates; otherwise remove-after like the other sources.
 
 | Source | Packages |
 |---|---|
-| **Fedora** | `fish` 4.6.0, `eza`, `bat`, `jq`, `zip`, `fuse-sshfs`, `fzf`, `xdg-terminal-exec` |
+| **Fedora** | `fish` 4.6.0, `eza`, `bat`, `jq`, `zip`, `fuse-sshfs`, `fzf`, `xdg-terminal-exec`, `ripgrep`, **`chezmoi`** |
 | **Terra** | `starship` 1.26.0, `yazi` 26.5.6 |
 | **Upstream release binary** | `lazygit` 0.63.1 (pinned `ARG LAZYGIT_VERSION`) |
 
@@ -49,6 +49,16 @@ priority) so Terra can never quietly shadow a Fedora package present in both.
 > Rather than add a third-party COPR for one tool, it's baked from the upstream
 > release tarball — the same pinned-artifact pattern already used for keyd and the
 > Nerd Font. Being outside rpm, it's guarded with `command -v` instead of `rpm -q`.
+
+## Two more added after the dotfiles work (2026-07-20)
+
+- **`chezmoi`** — the dotfiles bootstrap (`chezmoi init --apply`) *requires* it; rheniite
+  inherited it from the Zirconium base, Steen had no such base and it was missed. Now
+  baked. (The bootstrap literally can't run without it.)
+- **`ripgrep`** — `rg`. It's kitty's only useful `Recommends`, and 0003 installs
+  niri/kitty with `--setopt=install_weak_deps=False` (the waybar fix), which skipped it.
+  Re-added explicitly. `nanosvg` (a `fuzzel` dependency, not an app) was correctly
+  dropped with fuzzel and is *not* re-added — nothing Steen keeps needs it.
 
 ## No Homebrew (0015)
 

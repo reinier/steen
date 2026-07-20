@@ -72,7 +72,11 @@ backlog item for anything that fails.
 - [ ] Synology Drive syncs and its Nautilus extension shows sync emblems.
 - [ ] Printing: add a network printer via `system-config-printer` with a **polkit
       password prompt** (not root), and print a test page.
-- [ ] Bazaar launches, sees Flathub, installs and removes a Flatpak.
+- [ ] **Flathub remote is present on a fresh boot** with no `flatpak remote-add`
+      (the image ships it via `/etc/flatpak/remotes.d/` — the one part of 0011 that
+      can only be proven on a real boot).
+- [ ] After `chezmoi apply`: Bazaar is installed from the dotfiles' Flatpak list,
+      launches, sees Flathub, and installs/removes a Flatpak.
 - [ ] `tailscale up` joins the tailnet (`tailscaled` enabled from boot).
 
 ## F. Tooling and updates (0015, 0016)

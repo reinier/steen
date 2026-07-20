@@ -31,6 +31,10 @@ leader menu, matugen theming, fish/kitty/starship, and the `rl-*` helpers. Seed
 - **Synology Drive** wrapper + HiDPI fixup — matches 0008.
 - **Drop** bluefin's 1Password-via-distrobox (Steen has native 1Password, 0006)
   and its GNOME-coexistence notes (Steen is niri-only).
+- **Own the Flatpak app list**, including **Bazaar** (`io.github.kolunmi.Bazaar`) —
+  the image ships Flatpak + the Flathub remote, the dotfiles decide which apps get
+  installed ([0011](0011-bazaar-flatpak-appstore.md)). Bazaar is the app store itself,
+  so put it first in the list.
 - **Drop** the bluefin `rpm-ostree` layer + DMS-autostart script (the image bakes
   the desktop; DMS autostart comes from 0004's user preset).
 

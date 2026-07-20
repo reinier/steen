@@ -1,6 +1,6 @@
 # Bazaar + Flatpak/Flathub (replaces native VSCodium)
 
-- **Status:** in-progress (Flathub remote done 2026-07-20; Bazaar itself still open)
+- **Status:** in-progress (image side done 2026-07-20; Bazaar delegated to dotfiles, 0014)
 - **Created:** 2026-07-19
 - **Area:** image (`Containerfile`, flatpak preinstall, systemd unit)
 - **Depends:** 0002
@@ -23,49 +23,43 @@ native) for a simpler, sandboxed, self-service app model.
 > `--talk-name`/`flatpak-spawn` shim in dotfiles or reconsider native codium. Note
 > it and move on.
 
-## Implemented (2026-07-20) — partially
+## Implemented (2026-07-20) — image side complete
 
-**Done: the Flathub remote ships in the image.** It's configured via
+**The image ships the Flathub remote**, configured via
 `/etc/flatpak/remotes.d/flathub.flatpakrepo` rather than `flatpak remote-add`, because
 the latter writes to `/var/lib/flatpak` — machine-local state a bootc image can't ship.
-So Flathub is present on first boot with no per-user step.
+So Flathub is present on first boot with no per-user step, and `flatpak install` works
+immediately.
 
-**Not done: Bazaar itself.** The sub-question below is now answered — **Bazaar is not
-in Fedora 44** (checked), so option 1 is unavailable and it can only come from Flathub
-as a Flatpak. That can't be installed at image build time for the same `/var` reason.
-Two ways to close this, neither implemented yet:
+## Decision (2026-07-20): Bazaar comes from the dotfiles
 
-1. **Dotfiles** — add `io.github.kolunmi.Bazaar` to `dotfiles-steen`'s Flatpak list
-   (0014). Consistent with the image/dotfiles split (image = remote, dotfiles = app
-   list), but the *store* arguably belongs to the image.
-2. **First-boot preinstall service** — a oneshot unit that installs Bazaar from
-   Flathub after network-online. Delivers it out of the box, but it's first-boot
-   machinery that CI can't verify.
+**Bazaar is not in Fedora 44** (verified), so a native RPM isn't an option — it can
+only come from Flathub as a Flatpak, which can't be installed at image build time for
+the same `/var` reason.
 
-Deliberately left open rather than shipping unverifiable boot-time machinery; the
-Flathub remote alone already makes `flatpak install` work.
+Settled: **`io.github.kolunmi.Bazaar` goes in `dotfiles-steen`'s Flatpak list**
+([0014](0014-config-and-dotfiles-steen.md)), alongside the rest of the personal app
+set. The alternative — a first-boot oneshot unit that installs it after
+network-online — is **rejected**: it's boot-time machinery CI can't verify, for an app
+the dotfiles install anyway on the same first-run pass.
 
-## Open sub-question — how to ship Bazaar
+This keeps the split clean and consistent with every other app:
 
-Bazaar is on [Flathub](https://flathub.org/en/apps/io.github.kolunmi.Bazaar) and
-reportedly in some distros' software centers. Pick at implementation time:
+| Layer | Owns |
+|---|---|
+| **Image** | Flatpak itself + the Flathub remote (system plumbing) |
+| **Dotfiles** | the app list, Bazaar included (personal choice, changes without an image rebuild) |
 
-1. **Native RPM** if Bazaar is in Fedora main / a trusted COPR (verify) — a real
-   host app store, cleanest. **Preferred if it exists in Fedora.**
-2. **Bazaar as a Flatpak** (`io.github.kolunmi.Bazaar`), preinstalled from Flathub
-   at image build — no extra RPM repo, but an app store running sandboxed.
+So nothing further is needed here; the remaining work is a line in the dotfiles repo.
 
 ## Implementation sketch
 
 - Ensure `flatpak` is installed (0002) and add the **Flathub** remote in the image
   (Zirconium's `flatpak-add-flathub-repos` approach — system remote, so it's there
   at first boot without a per-user step).
-- Preinstall the base Flatpak set (mirror the app list rheniite's dotfiles install:
-  Slack, Mattermost, Obsidian, LibreOffice, gThumb, DejaDup, smile, Gradia, …) via
-  a `flatpak-preinstall`-style unit or the dotfiles — **decide split with 0014**
-  (image = the app store + Flathub remote; dotfiles = the personal app list is the
-  natural division).
-- Install Bazaar per the chosen option above.
+- The Flatpak app set (Bazaar, plus the list rheniite's dotfiles install: Slack,
+  Mattermost, Obsidian, LibreOffice, gThumb, DejaDup, smile, Gradia, …) lives in
+  `dotfiles-steen` — see the decision above and [0014](0014-config-and-dotfiles-steen.md).
 
 ## Verification
 

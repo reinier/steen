@@ -1,6 +1,6 @@
 # Bazaar + Flatpak/Flathub (replaces native VSCodium)
 
-- **Status:** accepted (approach), **proposed** (Bazaar source TBD)
+- **Status:** in-progress (Flathub remote done 2026-07-20; Bazaar itself still open)
 - **Created:** 2026-07-19
 - **Area:** image (`Containerfile`, flatpak preinstall, systemd unit)
 - **Depends:** 0002
@@ -22,6 +22,28 @@ native) for a simpler, sandboxed, self-service app model.
 > rheniite's native codium had them. If that matters, either keep a Flatpak
 > `--talk-name`/`flatpak-spawn` shim in dotfiles or reconsider native codium. Note
 > it and move on.
+
+## Implemented (2026-07-20) — partially
+
+**Done: the Flathub remote ships in the image.** It's configured via
+`/etc/flatpak/remotes.d/flathub.flatpakrepo` rather than `flatpak remote-add`, because
+the latter writes to `/var/lib/flatpak` — machine-local state a bootc image can't ship.
+So Flathub is present on first boot with no per-user step.
+
+**Not done: Bazaar itself.** The sub-question below is now answered — **Bazaar is not
+in Fedora 44** (checked), so option 1 is unavailable and it can only come from Flathub
+as a Flatpak. That can't be installed at image build time for the same `/var` reason.
+Two ways to close this, neither implemented yet:
+
+1. **Dotfiles** — add `io.github.kolunmi.Bazaar` to `dotfiles-steen`'s Flatpak list
+   (0014). Consistent with the image/dotfiles split (image = remote, dotfiles = app
+   list), but the *store* arguably belongs to the image.
+2. **First-boot preinstall service** — a oneshot unit that installs Bazaar from
+   Flathub after network-online. Delivers it out of the box, but it's first-boot
+   machinery that CI can't verify.
+
+Deliberately left open rather than shipping unverifiable boot-time machinery; the
+Flathub remote alone already makes `flatpak install` work.
 
 ## Open sub-question — how to ship Bazaar
 

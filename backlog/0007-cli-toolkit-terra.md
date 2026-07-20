@@ -1,6 +1,6 @@
 # CLI toolkit (Fedora + Terra)
 
-- **Status:** accepted
+- **Status:** in-progress (implemented 2026-07-20; real-boot checks in [0018](0018-first-boot-checklist.md))
 - **Created:** 2026-07-19
 - **Area:** image (`Containerfile`), Terra repo wiring
 - **Depends:** 0001
@@ -27,6 +27,17 @@ depends on live Terra updates; otherwise remove-after like the other sources.
 > Before wiring Terra, **check whether `lazygit`/`yazi` are now in Fedora main** —
 > if so, trim them off Terra and shrink the third-party surface to just
 > `starship` (or drop Terra entirely).
+
+## Implemented (2026-07-20) — Terra shrank to two packages
+
+Checked what Fedora 44 actually ships before wiring Terra, and **`lazygit` is now in
+Fedora** (0.62.2) — rheniite still had to take it from Terra. So Terra is needed for
+**`starship` and `yazi` only**; everything else (`fish` 4.6.0, `eza`, `bat`, `jq`,
+`zip`, `fuse-sshfs`, `lazygit`) comes from Fedora.
+
+Fedora packages are installed **first**, and `terra.repo` is only dropped in for the
+second transaction and removed straight after, with `priority=200` (higher number =
+lower priority) so Terra can never quietly shadow a Fedora package that exists in both.
 
 ## No Homebrew (0015)
 

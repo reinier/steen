@@ -1,3 +1,20 @@
+# --- keyd: built from source, pinned to an upstream release tag (backlog/0009) ---
+# keyd isn't in Fedora, and a pinned source build was judged more trustworthy than
+# tracking someone's COPR. Built in a throwaway stage so the toolchain (git/make/gcc)
+# never ships — only the artifacts are COPYed into the final image. The builder is
+# fedora:44 to match the base's Fedora release, so the binary is ABI-compatible.
+#
+# FORCE_SYSTEMD=1 is required: keyd's Makefile only installs keyd.service when
+# /run/systemd/system exists (or FORCE_SYSTEMD is set). There's no running systemd in
+# a container build, so without it the unit is silently skipped and the image ships
+# the binary but no service.
+FROM registry.fedoraproject.org/fedora:44 AS keyd-build
+ARG KEYD_VERSION=v2.6.0
+RUN dnf5 -y install git make gcc kernel-headers \
+ && git clone --depth 1 --branch "$KEYD_VERSION" https://github.com/rvaiya/keyd /src \
+ && make -C /src PREFIX=/usr \
+ && make -C /src PREFIX=/usr DESTDIR=/out FORCE_SYSTEMD=1 install
+
 # Steen — niri + DankMaterialShell atomic desktop on Fedora Sway Atomic.
 # Built one backlog item at a time; see backlog/ for the reasoning behind each layer.
 FROM quay.io/fedora-ostree-desktops/sway-atomic:44
@@ -151,6 +168,133 @@ RUN set -e; \
     ! rpm -q sddm >/dev/null 2>&1 || { echo "ERROR: sddm is installed alongside greetd" >&2; exit 1; }; \
     systemctl is-enabled greetd.service >/dev/null || { echo "ERROR: greetd.service is not enabled" >&2; exit 1; }; \
     echo "login: greetd $(rpm -q --qf '%{VERSION}' greetd) + dms-greeter $(rpm -q --qf '%{VERSION}' dms-greeter) (dms $(rpm -q --qf '%{VERSION}' dms))"
+
+# --- Native Chromium + free codecs (backlog/0005) ---
+# Native (non-Flatpak) so 1Password's native-messaging works with no wrappers and the
+# chrome-* app_ids niri window-rules / web-app launchers rely on stay intact. Fedora's
+# chromium links the system ffmpeg (H.264/AAC stripped), so libavcodec-freeworld from
+# RPM Fusion *free* supplies those codecs additively — without it, Teams WebRTC video
+# and <video> mp4 playback break. Only the free release repo is added, then removed.
+RUN dnf5 -y install "https://mirrors.rpmfusion.org/free/fedora/rpmfusion-free-release-$(rpm -E %fedora).noarch.rpm" \
+ && dnf5 -y install chromium libavcodec-freeworld \
+ && rm -f /etc/yum.repos.d/rpmfusion-*.repo \
+ && dnf5 clean all
+
+# --- 1Password: desktop app + CLI (backlog/0006) ---
+# rpm's hardened unpacker refuses to create package directories through the
+# /opt -> var/opt symlink, and /var content wouldn't ship or update with the image
+# anyway. So: swap /opt for a real directory for the transaction, relocate the payload
+# into /usr, restore the symlink exactly as the base had it (readlink fails loudly if a
+# future base stops symlinking /opt), and let tmpfiles.d recreate /opt/1Password at boot.
+# The setuid/setgid bits must be baked here because /usr is read-only at runtime.
+COPY files/1password.repo /etc/yum.repos.d/1password.repo
+RUN rpm --import https://downloads.1password.com/linux/keys/1password.asc \
+ && opt_link="$(readlink /opt)" \
+ && rm /opt && mkdir /opt \
+ # The %post scriptlet mkdir -p's under /usr/local, a dangling symlink into
+ # var/usrlocal during the build; materialize it so the scriptlet succeeds.
+ && mkdir -p "$(realpath -m /usr/local)" \
+ && dnf5 -y install 1password 1password-cli \
+ && rm -f /etc/yum.repos.d/1password.repo \
+ && mkdir -p /usr/lib/opt \
+ && mv /opt/1Password /usr/lib/opt/1Password \
+ && rmdir /opt \
+ && ln -s "$opt_link" /opt \
+ # Create onepassword / onepassword-cli now so the setgid bits can be baked into /usr.
+ && systemd-sysusers \
+ # chrome-sandbox: setuid root (Electron sandbox).
+ && chmod 4755 /usr/lib/opt/1Password/chrome-sandbox \
+ # BrowserSupport: setgid onepassword (browser-extension <-> desktop-app link);
+ # it fails its own integrity check without this.
+ && chgrp onepassword /usr/lib/opt/1Password/1Password-BrowserSupport \
+ && chmod 2755 /usr/lib/opt/1Password/1Password-BrowserSupport \
+ # op: setgid onepassword-cli (CLI <-> desktop-app link and SSH agent).
+ && chgrp onepassword-cli /usr/bin/op \
+ && chmod 2755 /usr/bin/op \
+ && dnf5 clean all
+COPY files/1password-opt.conf /usr/lib/tmpfiles.d/1password-opt.conf
+# Without restricted ptrace, 1Password's portal file pickers (1PUX export, import,
+# attachments) silently no-op. See the drop-in for the full explanation.
+COPY files/60-1password-ptrace.conf /usr/lib/sysctl.d/60-1password-ptrace.conf
+
+# --- CLI toolkit (backlog/0007) ---
+# Baked so it's present at boot and updates with the image. Steen ships no Homebrew
+# (0015), so this is the whole CLI baseline. Fedora covers all of it except starship
+# and yazi — including lazygit, which rheniite still had to take from Terra.
+RUN dnf5 -y install fish eza bat jq zip fuse-sshfs lazygit \
+ && dnf5 clean all
+# Terra second, and only for the two Fedora lacks, so it can't shadow Fedora packages.
+COPY files/terra.repo /etc/yum.repos.d/terra.repo
+RUN dnf5 -y install starship yazi \
+ && rm -f /etc/yum.repos.d/terra.repo \
+ && dnf5 clean all
+
+# --- Synology Drive (backlog/0008) ---
+# The -noextra variant keeps the Nautilus extension (a compiled .so in %{_libdir},
+# which is why nautilus-python isn't needed) but drops the GNOME-Shell-only
+# appindicator weak deps — dead weight on niri, where DMS provides the SNI tray.
+# Same /opt relocation as 1Password above.
+COPY files/synology-drive.repo /etc/yum.repos.d/synology-drive.repo
+RUN opt_link="$(readlink /opt)" \
+ && rm /opt && mkdir /opt \
+ && dnf5 -y install synology-drive-noextra \
+ && rm -f /etc/yum.repos.d/synology-drive.repo \
+ && mkdir -p /usr/lib/opt \
+ && mv /opt/Synology /usr/lib/opt/Synology \
+ && rmdir /opt \
+ && ln -s "$opt_link" /opt \
+ && dnf5 clean all
+COPY files/synology-drive-opt.conf /usr/lib/tmpfiles.d/synology-drive-opt.conf
+
+# --- keyd artifacts (backlog/0009) ---
+# Binary + systemd unit + man pages only; the build toolchain stays in the throwaway
+# stage. Deliberately NOT enabled here: the mapping and `systemctl enable keyd` live
+# in dotfiles-steen, so the tap-hold behaviour is a dotfiles concern.
+COPY --from=keyd-build /out/ /
+
+# --- Tailscale (backlog/0010) ---
+# From Fedora — no third-party repo needed (rheniite and Zirconium both used
+# Tailscale's own repo). Enabled at boot so the daemon's socket exists and the
+# dotfiles' `tailscale set --operator` works; only `tailscale up` is left interactive.
+RUN dnf5 -y install tailscale \
+ && systemctl enable tailscaled.service \
+ && dnf5 clean all
+
+# --- Flathub remote (backlog/0011) ---
+# Configured via /etc/flatpak/remotes.d rather than `flatpak remote-add`, because the
+# latter writes to /var/lib/flatpak — machine-local state a bootc image can't ship.
+# This way Flathub is present on first boot with no per-user step.
+RUN mkdir -p /etc/flatpak/remotes.d \
+ && curl -fsSL -o /etc/flatpak/remotes.d/flathub.flatpakrepo \
+      https://dl.flathub.org/repo/flathub.flatpakrepo
+
+# --- Printer management GUI (backlog/0012) ---
+# No GNOME Control Center on niri, and 0002's Sway subtraction orphaned the base's
+# system-config-printer, so reinstall it. cups-pk-helper is what lets a wheel user
+# add/remove printers via polkit with their own password instead of root.
+RUN dnf5 -y install system-config-printer cups-pk-helper \
+ && dnf5 clean all
+
+# Guard for the whole app layer (0005-0012). The /opt relocations and setuid bits are
+# the fragile parts: a silent failure there gives an app that simply never launches, or
+# a 1Password that fails its own integrity check at runtime.
+RUN set -e; \
+    rpm -q chromium libavcodec-freeworld 1password 1password-cli \
+           fish eza bat jq zip fuse-sshfs lazygit starship yazi \
+           synology-drive-noextra tailscale system-config-printer cups-pk-helper >/dev/null; \
+    ! rpm -q firefox >/dev/null 2>&1 || { echo "ERROR: firefox reappeared" >&2; exit 1; }; \
+    test -L /opt || { echo "ERROR: /opt is no longer a symlink — ostree layout broken" >&2; exit 1; }; \
+    test -d /usr/lib/opt/1Password || { echo "ERROR: 1Password payload not relocated into /usr" >&2; exit 1; }; \
+    test -d /usr/lib/opt/Synology  || { echo "ERROR: Synology payload not relocated into /usr" >&2; exit 1; }; \
+    test -u /usr/lib/opt/1Password/chrome-sandbox || { echo "ERROR: chrome-sandbox lost its setuid bit" >&2; exit 1; }; \
+    test -g /usr/lib/opt/1Password/1Password-BrowserSupport || { echo "ERROR: 1Password-BrowserSupport lost its setgid bit" >&2; exit 1; }; \
+    test -g /usr/bin/op || { echo "ERROR: op lost its setgid bit" >&2; exit 1; }; \
+    test -f /usr/lib/sysctl.d/60-1password-ptrace.conf || { echo "ERROR: ptrace_scope drop-in missing" >&2; exit 1; }; \
+    command -v keyd >/dev/null || { echo "ERROR: keyd binary missing" >&2; exit 1; }; \
+    test -f /usr/lib/systemd/system/keyd.service || { echo "ERROR: keyd.service missing — FORCE_SYSTEMD did not take" >&2; exit 1; }; \
+    test -s /etc/flatpak/remotes.d/flathub.flatpakrepo || { echo "ERROR: Flathub remote missing" >&2; exit 1; }; \
+    systemctl is-enabled tailscaled.service >/dev/null || { echo "ERROR: tailscaled is not enabled" >&2; exit 1; }; \
+    echo "apps OK: chromium $(rpm -q --qf '%{VERSION}' chromium), 1password $(rpm -q --qf '%{VERSION}' 1password), synology $(rpm -q --qf '%{VERSION}' synology-drive-noextra), tailscale $(rpm -q --qf '%{VERSION}' tailscale), keyd at $(command -v keyd)"
 
 # --- Image-update trust (backlog/0001) ---
 # Steen boots this image, so it must verify its own update stream

@@ -1,6 +1,6 @@
 # Tailscale (baked + enabled)
 
-- **Status:** accepted
+- **Status:** in-progress (implemented 2026-07-20; real-boot checks in [0018](0018-first-boot-checklist.md))
 - **Created:** 2026-07-19
 - **Area:** image (`Containerfile`, systemd preset)
 - **Depends:** 0002
@@ -14,11 +14,12 @@ daemon runs from first boot — otherwise its socket doesn't exist and the dotfi
 `tailscale set --operator` fails. Only the interactive `tailscale up` is left to
 the user.
 
-## Notes
+## Implemented (2026-07-20) — no third-party repo needed
 
-- Source: Tailscale's own stable RPM repo (as rheniite/Zirconium use), added then
-  removed; record in `docs/third-party-repos.md`. Confirm whether `tailscale` is
-  now in Fedora/Terra to avoid the extra repo.
+**`tailscale` is in Fedora 44.** rheniite and Zirconium both added Tailscale's own RPM
+repo; Steen doesn't have to. So this reduces to a plain `dnf5 install tailscale` plus
+`systemctl enable tailscaled.service`, and Tailscale drops off the third-party source
+list entirely.
 - Zirconium enables `tailscaled` via its system preset — match that mechanism once
   0002 establishes a Steen preset file.
 

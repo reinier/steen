@@ -32,7 +32,7 @@ depends on live Terra updates; otherwise remove-after like the other sources.
 
 | Source | Packages |
 |---|---|
-| **Fedora** | `fish` 4.6.0, `eza`, `bat`, `jq`, `zip`, `fuse-sshfs` |
+| **Fedora** | `fish` 4.6.0, `eza`, `bat`, `jq`, `zip`, `fuse-sshfs`, `fzf`, `xdg-terminal-exec` |
 | **Terra** | `starship` 1.26.0, `yazi` 26.5.6 |
 | **Upstream release binary** | `lazygit` 0.63.1 (pinned `ARG LAZYGIT_VERSION`) |
 

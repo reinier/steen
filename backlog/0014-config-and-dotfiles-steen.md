@@ -1,7 +1,8 @@
 # Own the config: dotfiles-steen (derived from dotfiles-rheniite)
 
-- **Status:** proposed
-- **Created:** 2026-07-19 (seed corrected 2026-07-20 → dotfiles-rheniite)
+- **Status:** in-progress (repo created + pushed 2026-07-20; real-boot validation pending, [0018](0018-first-boot-checklist.md) §G)
+- **Created:** 2026-07-19 (seed corrected 2026-07-20 → dotfiles-rheniite; base-config approach revised 2026-07-20 → DMS defaults)
+- **Repo:** `ssh://forgejo@forge.personalos.nl:1982/reinierladan/dotfiles-steen.git` (checked out at `../../dotfiles-steen`)
 - **Area:** new repo `dotfiles-steen` (chezmoi)
 - **Depends:** 0003 (desktop), 0004 (session) — needs installed binaries to target
 - **Related:**
@@ -41,21 +42,37 @@ expect small deltas, not a rewrite.
 ([decision below]), so niri would have nothing to load — `local/*.kdl` are includes,
 not a standalone config.
 
-So `dotfiles-steen` must additionally supply the base rheniite delegates to its image:
-the top-level `config.kdl` (the include chain that pulls in `dms.kdl` + the base binds/
-input/layout + `local.kdl` last) and the `dms/*.kdl`. Fill it from one of:
+## Resolved (2026-07-20): DMS generates the base, dotfiles ship only overrides
 
-1. **`dotfiles-bluefin-niri`'s vendored copy** *(recommended)* — bluefin is also
-   imageless and already vendors a full DMS-generated `config.kdl` + `dms/*.kdl` for
-   exactly this reason. Take that base, drop rheniite's `local/*.kdl` on top. Cleanest,
-   and both repos already share most of the rest.
-2. **`dms setup`** on first run — regenerate the base per-user. Fewer vendored files to
-   maintain, but it's a first-run step, and 0003's build showed `dms` is the COPR CLI
-   whose `setup` behaviour should be verified on real hardware first.
+The earlier plan was to vendor bluefin's `config.kdl` + `dms/*.kdl`. **Rejected in favour
+of `dms setup`** — vendoring a copy of DMS's defaults drifts against the installed DMS
+version (the 1.4→1.5 skew), which is exactly the trap this whole item exists to avoid.
 
-Drop bluefin's kanata, 1Password-via-distrobox, GNOME-coexistence notes, and its
-`rpm-ostree` layer / DMS-autostart script — all obsolete on Steen (keyd, native
-1Password, niri-only, and 0004's preset handle those).
+Instead (implemented in the repo):
+
+- `dotfiles-steen` ships **only** `local.kdl` + `local/*.kdl` (the overrides), same as
+  rheniite.
+- `run_once_after_niri-dms-config.sh` runs **`dms setup --non-interactive`**, which
+  deploys the version-correct `config.kdl` + the required `dms/*.kdl` **non-destructively**
+  ("only writes files that don't already exist or are empty"), then **appends
+  `include "local.kdl"`** to `config.kdl` (DMS's default doesn't include a user file), so
+  overrides load last. Idempotent, so it's correct regardless of DMS's include behaviour.
+- Verified from the `dms` binary: `dms setup` exists with a `--non-interactive` flag and
+  deploys the niri "main config" + defaults; still to confirm on real hardware that the
+  generated config.kdl + our appended include validate under DMS 1.5.2 ([0018](0018-first-boot-checklist.md) §G).
+
+## What was copied vs adapted
+
+Copied from `dotfiles-rheniite` wholesale: niri `local/*.kdl`, dank-lader, matugen,
+fish/kitty/starship, `rl-*` helpers, keyd mapping, network/udev, web-app launchers, ssh
+config. **Adapted:** dropped the brew PATH drop-in + the whole brew block in
+firstrun-setup (no Homebrew); dropped the dead Nextcloud autostart and Firefox refs
+(Steen has neither); added Bazaar to the Flatpak list; swept rheniite→steen wording.
+
+## Known image gaps surfaced by the dotfiles
+
+The firstrun dependency check expects `fzf` and `xdg-terminal-exec`, which the first
+image cut didn't include. **Added to 0007** (both are in Fedora main).
 
 ## Also owned here
 

@@ -247,7 +247,7 @@ COPY files/60-1password-ptrace.conf /usr/lib/sysctl.d/60-1password-ptrace.conf
 # --- CLI toolkit (backlog/0007) ---
 # Baked so it's present at boot and updates with the image. Steen ships no Homebrew
 # (0015), so this is the whole CLI baseline.
-RUN dnf5 -y install fish eza bat jq zip fuse-sshfs \
+RUN dnf5 -y install fish eza bat jq zip fuse-sshfs fzf xdg-terminal-exec \
  && dnf5 clean all
 # Terra second, and only for what Fedora lacks, so it can't shadow Fedora packages.
 COPY files/terra.repo /etc/yum.repos.d/terra.repo
@@ -324,7 +324,7 @@ RUN dnf5 -y install distrobox \
 # a 1Password that fails its own integrity check at runtime.
 RUN set -e; \
     rpm -q chromium libavcodec-freeworld 1password 1password-cli \
-           fish eza bat jq zip fuse-sshfs starship yazi \
+           fish eza bat jq zip fuse-sshfs fzf xdg-terminal-exec starship yazi \
            synology-drive-noextra tailscale system-config-printer cups-pk-helper \
            distrobox podman >/dev/null; \
     command -v lazygit >/dev/null || { echo "ERROR: lazygit binary missing" >&2; exit 1; }; \

@@ -119,6 +119,24 @@ Fixed in **0003**: install niri with `--setopt=install_weak_deps=False`, then a 
 **absence guard** that fails the build if any Sway/menu UI (incl. `dmenu`, which the
 base shipped) is still present. Lesson: **guard both presence and absence.**
 
+### …but that was only *half* the cause (learned from the real config)
+
+The install's `~/.config/niri/config.kdl` turned out to be **niri's own stock default**
+— which contains `spawn-at-startup "waybar"` and the stock alacritty/fuzzel/swaylock
+binds, *not* DMS's config. niri writes that default to disk on first launch when no
+config exists, so the double bar had **two independent sources**:
+
+1. the waybar **package** (this item / 0003) — fixed here, and
+2. niri's **default config** literally spawning waybar — a **dotfiles** concern, not an
+   image one.
+
+The image fix (removing the package) means the default's `spawn-at-startup "waybar"`
+now just fails silently. The *real* fix — replacing niri's default with DMS's config — is
+in `dotfiles-steen`'s `run_once_after_niri-dms-config.sh`, which backs up niri's default
+before `dms setup` (because `dms setup` is non-destructive and would otherwise skip it).
+See [0014](0014-config-and-dotfiles-steen.md). Broader lesson: a "package present"
+symptom can have a parallel "config references it" cause; check both.
+
 ## Still open
 
 - **Polkit agent under niri:** `lxqt-policykit` is wired for Sway — confirm it

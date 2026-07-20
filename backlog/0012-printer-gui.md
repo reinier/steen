@@ -17,10 +17,17 @@ no CUPS SystemGroup membership).
 
 ## Notes
 
-- CUPS itself + mDNS discovery: rheniite got them from the Zirconium base. The
-  Sway Atomic base likely ships `cups`/`avahi`/`nss-mdns` too — **verify in 0002**
-  (socket-activated `cups.socket`, mDNS resolves a WiFi printer) and only add
-  explicitly if missing.
+**Audit result (2026-07-20): this item is nearly free.** The base already ships
+`cups` 2.4.19, **`system-config-printer` 1.5.18**, `avahi` and `nss-mdns` — so the
+GUI and mDNS discovery need no action. The one gap is **`cups-pk-helper` (absent)**,
+which is exactly what lets a wheel user add/remove printers via polkit with their own
+password instead of root. So this item reduces to:
+
+```dockerfile
+RUN dnf5 -y install cups-pk-helper && dnf5 clean all
+```
+
+See [`../notes/base-audit-sway-atomic-44.md`](../notes/base-audit-sway-atomic-44.md).
 
 ## Verification
 

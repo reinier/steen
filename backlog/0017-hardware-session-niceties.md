@@ -23,11 +23,11 @@ is gone." This item is an **audit** (what does the base already provide, checked
 
 | Feature | Package | Expected on base | Action |
 |---|---|---|---|
-| **Fingerprint** | `fprintd` | likely yes | **must-have (Framework)** — verify + enable; enroll must work |
-| **Firmware updates** | `fwupd` | likely yes | **must-have (Framework)** — verify `fwupdmgr get-devices`; set `DisableCapsuleUpdateOnDisk=true` in `/etc/fwupd/uefi_capsule.conf` for Framework BIOS |
-| **Thunderbolt** | `bolt` | likely yes | verify device authorization works; add if missing |
-| **Dev containers** | `distrobox` / `podman` | podman likely; distrobox maybe | **include** — with no brew ([0015](0015-no-homebrew.md)), distrobox is *the* path for ad-hoc CLI tooling; add `distrobox` (Fedora pkg), confirm `podman` |
-| **External-monitor brightness** | `ddcutil` | probably not | add **only if** you drive external displays over DDC |
+| **Fingerprint** | `fprintd` 1.94.5 | **PRESENT** ✅ | nothing to install — just verify enroll works on hardware |
+| **Firmware updates** | `fwupd` 2.1.6 | **PRESENT** ✅ | nothing to install; set `DisableCapsuleUpdateOnDisk=true` in `/etc/fwupd/uefi_capsule.conf` for Framework BIOS |
+| **Thunderbolt** | `bolt` 0.9.11 | **PRESENT** ✅ | nothing to install — verify device authorization |
+| **Dev containers** | `distrobox` | **ABSENT** (base has `podman` 5.8.4 + `toolbox`) | **add `distrobox`** — with no brew ([0015](0015-no-homebrew.md)) it's *the* path for ad-hoc CLI tooling |
+| **External-monitor brightness** | `ddcutil` | **ABSENT** | add **only if** you drive external displays over DDC |
 | **Screen autorotate** | `iio-niri` (Terra) | no | add **only if** on a convertible/tablet — a Framework 13 clamshell doesn't need it; default **drop** |
 
 Input remapping is **not** here — keyd (0009) covers the Super remap; Zirconium's
@@ -50,11 +50,12 @@ hidapi-devel`) — otherwise skip. Default: **skip**, revisit if you want EC twe
 
 ## Recommendation
 
-Fold the "what does the base already ship" check into **0002**'s verify pass, then
-here: **must-add** `fprintd` + `fwupd` + `bolt` if any are missing (Framework
-essentials), **include** `distrobox` (the no-brew ad-hoc-tooling path, 0015),
+**The audit (2026-07-20) shrank this item a lot:** `fprintd`, `fwupd` and `bolt` —
+the three Framework must-haves — are **already in the base**, so nothing to install.
+What's left: **add `distrobox`** (the no-brew ad-hoc-tooling path, 0015),
 **add-if-used** `ddcutil`, **default-skip** `framework_tool` and `iio-niri`
-autorotate. Enable the relevant services in the system preset.
+autorotate. Verify the present services are enabled in the system preset, and confirm
+fingerprint/thunderbolt actually work once the desktop boots.
 
 ## Verification
 

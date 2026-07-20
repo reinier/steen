@@ -1,6 +1,6 @@
 # Adapt the Sway Atomic base for niri/DMS
 
-- **Status:** accepted
+- **Status:** in-progress (implemented 2026-07-20; unverified on real hardware)
 - **Created:** 2026-07-19 (reworked for the Sway Atomic base — see 0000)
 - **Area:** image (`Containerfile`)
 - **Depends:** 0000, 0001
@@ -63,8 +63,9 @@ base) so the 0006/0008 relocations apply unchanged.
 
 ## Login manager note
 
-The base ships some display manager (SDDM/greetd/other). Steen replaces it with
-greetd + dms-greeter in **0004** — disable/mask the base's DM there, not here.
+The base's display manager is **`sddm` 0.21.0** (audit-confirmed; the only wayland
+session was `sway.desktop`). Steen replaces it with greetd + dms-greeter in **0004** —
+remove/mask `sddm` there, not here. `sddm-wayland-sway` is already gone with sway.
 
 ## Fonts
 
@@ -76,8 +77,37 @@ is brew-free and repo-free (the keyd source-build pattern). rheniite got this vi
 brew cask; Steen ships no brew (see [0015](0015-no-homebrew.md)). *(Alternative: the
 `che/nerd-fonts` COPR — rejected to avoid another third-party repo.)*
 
+## Implemented (2026-07-20)
+
+Base audited in CI first — findings in
+[`../notes/base-audit-sway-atomic-44.md`](../notes/base-audit-sway-atomic-44.md).
+The `Containerfile` now:
+
+- **Removes** `sway`, `sddm-wayland-sway`, `waybar`, `rofi`, `dunst`, `swaylock`,
+  `swayidle`, `swaybg`, `foot`, `Thunar`, `firefox`, `xdg-desktop-portal-wlr`.
+- **Keeps** `kanshi`, `brightnessctl`, `playerctl`, `wl-clipboard`, `imv` — and
+  `sddm` (0004 swaps it for greetd + dms-greeter).
+- **Adds** `xdg-desktop-portal-gnome`, `nautilus`, and the JetBrainsMono **Nerd
+  Font** baked from the upstream release (pinned `v3.4.0`, `ARG NERD_FONT_VERSION`).
+- **Guards** the removals with an `rpm -q` assertion so a dependency cascade that
+  takes out pipewire/NetworkManager/portals/polkit/keyring/fwupd/etc. fails the
+  build instead of shipping a quietly broken image.
+
+Audit corrections worth noting: most base-desktop plumbing was already present
+(so nothing was reinstalled), the polkit agent is **`lxqt-policykit`**, and the
+keyring ships **`gcr3`** rather than `gcr`.
+
+## Still open
+
+- **Polkit agent under niri:** `lxqt-policykit` is wired for Sway — confirm it
+  autostarts and actually prompts on a niri session, or autostart/replace it from
+  `dotfiles-steen`.
+- **`gcr3` vs `gcr`:** if DMS's keyring/ssh-agent path expects gcr4, add `gcr`.
+- `nautilus-python` is deferred to 0008 (only if the Synology extension needs it).
+
 ## Verification
 
 - After 0003/0004: log into niri, DMS comes up, screencast works (portal-gnome),
   audio/network/keyring all functional, and none of the removed Sway tools linger
-  (no stray waybar/dunst). Nautilus opens and loads its extensions.
+  (no stray waybar/dunst). Nautilus opens and loads its extensions. Nerd Font glyphs
+  render in kitty/DMS (`fc-list | grep -i jetbrainsmono`).

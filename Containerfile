@@ -98,12 +98,33 @@ RUN missing=""; \
 # Repos are added for this one transaction then deleted, so the booted system has no
 # COPRs configured; updates arrive via image rebuilds.
 COPY files/avengemedia-dms.repo files/avengemedia-danklinux.repo /etc/yum.repos.d/
-RUN dnf5 -y install \
-      niri kitty xwayland-satellite \
-      dms \
+# niri Recommends waybar/fuzzel/swaylock/alacritty — install it with weak deps OFF, or
+# a bare `dnf install niri` re-adds the exact Sway UI that 0002 removed (this shipped a
+# double bar: waybar + the DMS bar). niri's *wanted* recommends — gnome-keyring,
+# wireplumber, the portals — are already present, so nothing is lost. dms is installed
+# SEPARATELY, with weak deps ON, because its recommends (matugen/cava/danksearch) ARE
+# wanted.
+RUN dnf5 -y install --setopt=install_weak_deps=False niri kitty xwayland-satellite \
+ && dnf5 -y install dms \
  && rm -f /etc/yum.repos.d/avengemedia-dms.repo \
           /etc/yum.repos.d/avengemedia-danklinux.repo \
  && dnf5 clean all
+
+# Belt-and-suspenders: purge any Sway/menu UI that slipped in as a weak dep of anything
+# (or was shipped by the base, e.g. dmenu), then ASSERT it is gone. 0002's removal had
+# no absence guard, which is exactly why the waybar regression stayed green. Never again.
+RUN for p in waybar fuzzel wofi rofi dmenu dunst mako swaylock swayidle swaybg \
+             alacritty foot sway Thunar firefox; do \
+      rpm -q "$p" >/dev/null 2>&1 && dnf5 -y remove "$p" || true; \
+    done \
+ && dnf5 clean all
+RUN set -e; present=""; \
+    for p in waybar fuzzel wofi rofi dmenu dunst mako swaylock swayidle swaybg \
+             alacritty foot sway Thunar firefox; do \
+      rpm -q "$p" >/dev/null 2>&1 && present="$present $p"; \
+    done; \
+    [ -z "$present" ] || { echo "ERROR: unwanted UI still present:$present" >&2; exit 1; }; \
+    echo "no stray Sway/menu UI present"
 
 # Guard: assert PROVENANCE, not versions.
 #

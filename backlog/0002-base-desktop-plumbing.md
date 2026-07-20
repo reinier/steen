@@ -106,6 +106,19 @@ Audit corrections worth noting: most base-desktop plumbing was already present
 (so nothing was reinstalled), the polkit agent is **`lxqt-policykit`**, and the
 keyring ships **`gcr3`** rather than `gcr`.
 
+## Regression found on first boot (2026-07-20) — the removals didn't stick
+
+The subtraction here removed waybar/etc., but the image booted with **waybar running
+alongside the DMS bar** anyway. Cause: **Fedora's `niri` package
+`Recommends: waybar, fuzzel, swaylock, alacritty`**, so 0003's `dnf install niri` (weak
+deps on) re-added them after 0002 removed them. This item's guard only asserted that
+*wanted* plumbing survived — it never checked the *removed* set stayed gone, so the
+regression built green.
+
+Fixed in **0003**: install niri with `--setopt=install_weak_deps=False`, then a purge +
+**absence guard** that fails the build if any Sway/menu UI (incl. `dmenu`, which the
+base shipped) is still present. Lesson: **guard both presence and absence.**
+
 ## Still open
 
 - **Polkit agent under niri:** `lxqt-policykit` is wired for Sway — confirm it

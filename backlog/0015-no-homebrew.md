@@ -5,7 +5,7 @@
   plan was "bake brew thin")
 - **Area:** image (`Containerfile`), dotfiles
 - **Depends:** 0007 (the baked toolkit is what makes this possible)
-- **Related:** 0002 (Nerd Font), 0014 (dotfiles: claude-code), 0016 (update streams),
+- **Related:** 0002 (Nerd Font), 0014 (dotfiles), 0016 (update streams),
   0017 (distrobox, fwupd, framework_tool); rheniite
   [`README.md`](../../rheniite/rheniite/README.md) already moved the toolkit off brew.
 
@@ -24,7 +24,7 @@ more upstream — consistent with Steen's "nothing between you and Fedora" ethos
 | `kanata` | n/a — keyd in the image (0009) |
 | JetBrainsMono **Nerd Font** | **baked from the Nerd Fonts release archive** (0002) — plain `jetbrains-mono-fonts` is in Fedora but lacks the icon glyphs |
 | `framework_tool` | not needed for firmware — `fwupd`/LVFS covers Framework updates (0017); the EC utility is an **optional source-build** if you want it |
-| `claude-code` | its **official installer**, per-user, in `dotfiles-steen` (0014) — it self-updates, so don't bake it into `/usr` |
+| Self-updating dev CLIs | per-user via their own installers, in `dotfiles-steen` (0014) — self-updating binaries don't belong in read-only `/usr` |
 | Ad-hoc CLI tools | **distrobox/toolbox** (0017) — the atomic-native `brew install X` replacement — or add to the image (Fedora/Terra) and rebuild |
 
 ## Consequence (accepted)
@@ -39,4 +39,4 @@ over leaving it in a container.
 
 - No `brew` on `PATH`; `/home/linuxbrew` does not exist; no `brew-setup` unit.
 - Core toolkit present and working (0007); Nerd Font glyphs render in kitty/DMS (0002).
-- `claude-code` installs and runs via its official installer; `distrobox create` works.
+- `distrobox create` works (the ad-hoc CLI-tooling path).

@@ -1,6 +1,6 @@
 # Bootstrap: a signed, bootable image + CI
 
-- **Status:** accepted
+- **Status:** in-progress
 - **Created:** 2026-07-19
 - **Area:** image (`Containerfile`), CI (`.github/workflows/`), signing
 - **Depends:** 0000 (base image decided)
@@ -66,6 +66,24 @@ exists" if omitted).
    `SIGNING_SECRET`, push `:latest` + an immutable dated snapshot (`:latest.YYYYMMDD`)
    for a rollback target. Build on push, PR, and a daily cron (new base images).
 3. Copy rheniite's `.github/` and repo-secret setup.
+
+## Progress (2026-07-20)
+
+Deliverables written: `Containerfile` (`FROM quay.io/fedora-ostree-desktops/sway-atomic:44`
+— ref confirmed to exist, with dated snapshots like `44.20260720.0` available for
+pinning), `patch-policy.py`, `files/steen-registries.yaml`, `cosign.pub` (the provided
+signing public key), and `.github/workflows/build.yaml` (build + `bootc container lint`
++ signed push of `:latest` and a dated `:latest.YYYYMMDD` snapshot).
+
+**Blocking to actually sign:** the matching **sigstore private key** must be added as
+the `SIGNING_SECRET` repo secret. The workflow assumes a **passphrase-less** key
+(`--sign-passphrase-file=/dev/null`); if the key has a passphrase, add a passphrase
+secret and point that flag at it. Until the secret is set, CI pushes **unsigned**, and
+`bootc switch` will reject the image (the baked policy requires a signature).
+
+**Follow-ups (not blocking the first green build):** pin the base to a digest/snapshot
+and promote deliberately (fold in `pin-stable-base` discipline); decide whether to make
+the `ghcr.io/reinier/steen` package public.
 
 ## Verification
 

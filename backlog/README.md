@@ -72,8 +72,7 @@ Most items are a **translation**, not a fresh design:
 14. [0014-config-and-dotfiles-steen.md](0014-config-and-dotfiles-steen.md) — own the
     stable-targeted niri/DMS config; seed `dotfiles-steen` from `dotfiles-bluefin-niri`.
 15. [0015-no-homebrew.md](0015-no-homebrew.md) — **no** Homebrew: toolkit baked from
-    Fedora/Terra (0007), Nerd Font baked (0002), `claude-code` via its installer,
-    ad-hoc tooling via distrobox (0017).
+    Fedora/Terra (0007), Nerd Font baked (0002), ad-hoc tooling via distrobox (0017).
 16. [0016-system-updates.md](0016-system-updates.md) — two independent update streams
     (bootc / Flatpak), updated manually and separately; no uupd, no auto-update timer.
 17. [0017-hardware-session-niceties.md](0017-hardware-session-niceties.md) — audit +

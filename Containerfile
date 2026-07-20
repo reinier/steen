@@ -209,7 +209,15 @@ RUN dnf5 -y install "https://mirrors.rpmfusion.org/free/fedora/rpmfusion-free-re
 # future base stops symlinking /opt), and let tmpfiles.d recreate /opt/1Password at boot.
 # The setuid/setgid bits must be baked here because /usr is read-only at runtime.
 COPY files/1password.repo /etc/yum.repos.d/1password.repo
+# Ships in the image so the onepassword groups are recreated at every boot — the RPM's
+# imperative groupadd does NOT survive a bootc switch (first-boot bug: groups vanished,
+# setgid pointed at gid 1000 = the user's own group). See the drop-in.
+COPY files/1password-sysusers.conf /usr/lib/sysusers.d/1password-steen.conf
 RUN rpm --import https://downloads.1password.com/linux/keys/1password.asc \
+ # Create onepassword / onepassword-cli / onepassword-mcp at FIXED GIDs *before*
+ # install: the RPM's %post groupadd is conditional (`if ! getent group`), so it finds
+ # them and skips, and our chgrp below bakes those fixed GIDs into the read-only /usr.
+ && systemd-sysusers /usr/lib/sysusers.d/1password-steen.conf \
  && opt_link="$(readlink /opt)" \
  && rm /opt && mkdir /opt \
  # The %post scriptlet mkdir -p's under /usr/local, a dangling symlink into
@@ -221,8 +229,6 @@ RUN rpm --import https://downloads.1password.com/linux/keys/1password.asc \
  && mv /opt/1Password /usr/lib/opt/1Password \
  && rmdir /opt \
  && ln -s "$opt_link" /opt \
- # Create onepassword / onepassword-cli now so the setgid bits can be baked into /usr.
- && systemd-sysusers \
  # chrome-sandbox: setuid root (Electron sandbox).
  && chmod 4755 /usr/lib/opt/1Password/chrome-sandbox \
  # BrowserSupport: setgid onepassword (browser-extension <-> desktop-app link);
@@ -329,6 +335,11 @@ RUN set -e; \
     test -u /usr/lib/opt/1Password/chrome-sandbox || { echo "ERROR: chrome-sandbox lost its setuid bit" >&2; exit 1; }; \
     test -g /usr/lib/opt/1Password/1Password-BrowserSupport || { echo "ERROR: 1Password-BrowserSupport lost its setgid bit" >&2; exit 1; }; \
     test -g /usr/bin/op || { echo "ERROR: op lost its setgid bit" >&2; exit 1; }; \
+    test -f /usr/lib/sysusers.d/1password-steen.conf || { echo "ERROR: 1password sysusers drop-in missing (groups won't survive a bootc switch)" >&2; exit 1; }; \
+    getent group onepassword     | grep -q ':923:' || { echo "ERROR: onepassword group not at fixed gid 923 (collision? -> pick another)" >&2; exit 1; }; \
+    getent group onepassword-cli | grep -q ':924:' || { echo "ERROR: onepassword-cli group not at fixed gid 924" >&2; exit 1; }; \
+    [ "$(stat -c %g /usr/lib/opt/1Password/1Password-BrowserSupport)" = 923 ] || { echo "ERROR: BrowserSupport setgid is $(stat -c '%g(%G)' /usr/lib/opt/1Password/1Password-BrowserSupport), not onepassword(923)" >&2; exit 1; }; \
+    [ "$(stat -c %g /usr/bin/op)" = 924 ] || { echo "ERROR: op setgid is $(stat -c '%g(%G)' /usr/bin/op), not onepassword-cli(924)" >&2; exit 1; }; \
     test -f /usr/lib/sysctl.d/60-1password-ptrace.conf || { echo "ERROR: ptrace_scope drop-in missing" >&2; exit 1; }; \
     command -v keyd >/dev/null || { echo "ERROR: keyd binary missing" >&2; exit 1; }; \
     test -f /usr/lib/systemd/system/keyd.service || { echo "ERROR: keyd.service missing — FORCE_SYSTEMD did not take" >&2; exit 1; }; \

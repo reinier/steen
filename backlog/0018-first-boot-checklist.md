@@ -163,4 +163,6 @@ Record what actually failed here, with the follow-up item it produced.
 
 | Date | Check | Result | Follow-up |
 |---|---|---|---|
-| | | | |
+| 2026-07-20 | C: no stray Sway UI | ❌ waybar ran alongside DMS bar; dmenu present | Fixed — `niri` Recommends re-added them; install weak-deps-off + purge + **absence guard** (0002/0003) |
+| 2026-07-20 | E: 1Password browser integration | ❌ extension can't reach app; `onepassword` group missing at runtime, `op` setgid to gid 1000 (user) | Fixed — groups via `sysusers.d` at fixed GIDs, not RPM `groupadd` (0006) |
+| 2026-07-20 | B: DMS + niri + greeter | ✅ desktop core and DMS greeter come up | — |

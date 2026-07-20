@@ -29,9 +29,23 @@ carefully:
 
 ## Changes vs rheniite
 
-- None expected — copy the stanza and both `files/*.conf` verbatim. **x86_64 only**
-  (aarch64 ships CLI only). Re-verify the current 1Password version's `/opt` vs
-  `/usr` layout at implementation time (it has flip-flopped before).
+- **The setgid groups must come from `sysusers.d`, not the RPM's `groupadd`.** This is
+  the one real departure, forced by a first-boot bug (2026-07-20): the RPM creates
+  `onepassword`/`onepassword-cli` via imperative `groupadd` in `%post`, whose
+  `/etc/group` entry does **not** survive a `bootc switch`. On the running machine the
+  groups were gone — `1Password-BrowserSupport` was setgid to a dead GID (browser
+  integration's `SO_PEERCRED` peer check failed) and `op` was setgid to **gid 1000, the
+  first user's own group** (broken + a small privilege bug).
+  - Fix: ship `files/1password-sysusers.conf` (`g onepassword 923`, `onepassword-cli
+    924`, `onepassword-mcp 925` — **fixed** GIDs) to `/usr/lib/sysusers.d/`, run
+    `systemd-sysusers` on it *before* the dnf install (the `%post` groupadds are
+    conditional, so they skip), then `chgrp` to the fixed-GID groups. The drop-in
+    recreates the groups on every boot with the exact GIDs the setgid bits reference.
+  - The guard now asserts the groups are at 923/924 and the binaries' setgid GIDs match
+    — so a GID collision or a regressed group fails the build. This is what the original
+    guard missed (it checked *that* a setgid bit existed, not *which group* it pointed at).
+- **x86_64 only** (aarch64 ships CLI only). Re-verify the `/opt` vs `/usr` layout at
+  version bumps (it has flip-flopped before).
 
 ## Verification
 

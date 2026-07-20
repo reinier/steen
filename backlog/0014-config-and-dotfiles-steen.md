@@ -31,6 +31,10 @@ leader menu, matugen theming, fish/kitty/starship, and the `rl-*` helpers. Seed
 - **Synology Drive** wrapper + HiDPI fixup — matches 0008.
 - **Drop** bluefin's 1Password-via-distrobox (Steen has native 1Password, 0006)
   and its GNOME-coexistence notes (Steen is niri-only).
+- **Timezone**, if it ever needs setting. Inherited from [0013](0013-first-boot-defaults.md),
+  which was dropped: the installer already prompts for it, and baking one person's
+  timezone into a public image would override a correct answer. A one-line
+  `timedatectl set-timezone` here if a machine ever needs it — no image rebuild.
 - **Own the Flatpak app list**, including **Bazaar** (`io.github.kolunmi.Bazaar`) —
   the image ships Flatpak + the Flathub remote, the dotfiles decide which apps get
   installed ([0011](0011-bazaar-flatpak-appstore.md)). Bazaar is the app store itself,

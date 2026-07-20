@@ -68,7 +68,7 @@ Most items are a **translation**, not a fresh design:
 11. [0011-bazaar-flatpak-appstore.md](0011-bazaar-flatpak-appstore.md) — Flatpak +
     Flathub + **Bazaar** app store (replaces native VSCodium).
 12. [0012-printer-gui.md](0012-printer-gui.md) — `system-config-printer` GUI.
-13. [0013-first-boot-defaults.md](0013-first-boot-defaults.md) — timezone, NTP,
+13. [0013-first-boot-defaults.md](0013-first-boot-defaults.md) — **dropped**: timezone → dotfiles, NTP → verify (Fedora default).
     any first-boot sysctl/tmpfiles.
 14. [0014-config-and-dotfiles-steen.md](0014-config-and-dotfiles-steen.md) — own the
     stable-targeted niri/DMS config; seed `dotfiles-steen` from `dotfiles-bluefin-niri`.

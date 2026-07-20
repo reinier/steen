@@ -1,6 +1,6 @@
 # Hardware & session niceties: audit and re-add what matters
 
-- **Status:** proposed
+- **Status:** done (distrobox added + CI-green 2026-07-20; hardware verified in [0018](0018-first-boot-checklist.md))
 - **Created:** 2026-07-19
 - **Area:** image (`Containerfile` packages, systemd preset, udev)
 - **Depends:** 0002 (base plumbing audit is where "what does the base already give"

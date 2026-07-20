@@ -283,13 +283,23 @@ RUN mkdir -p /etc/flatpak/remotes.d \
 RUN dnf5 -y install system-config-printer cups-pk-helper \
  && dnf5 clean all
 
+# --- Dev containers (backlog/0017) ---
+# distrobox is *the* ad-hoc CLI-tooling path now that Steen ships no Homebrew (0015).
+# The base already has podman + toolbox but not distrobox. The audit also showed the
+# Framework essentials — fprintd, fwupd, bolt — are already present, so 0017 reduces
+# to this one package. ddcutil (external-monitor brightness) is deliberately skipped
+# until it's actually wanted; framework_tool and iio-niri autorotate likewise.
+RUN dnf5 -y install distrobox \
+ && dnf5 clean all
+
 # Guard for the whole app layer (0005-0012). The /opt relocations and setuid bits are
 # the fragile parts: a silent failure there gives an app that simply never launches, or
 # a 1Password that fails its own integrity check at runtime.
 RUN set -e; \
     rpm -q chromium libavcodec-freeworld 1password 1password-cli \
            fish eza bat jq zip fuse-sshfs starship yazi \
-           synology-drive-noextra tailscale system-config-printer cups-pk-helper >/dev/null; \
+           synology-drive-noextra tailscale system-config-printer cups-pk-helper \
+           distrobox podman >/dev/null; \
     command -v lazygit >/dev/null || { echo "ERROR: lazygit binary missing" >&2; exit 1; }; \
     ! rpm -q firefox >/dev/null 2>&1 || { echo "ERROR: firefox reappeared" >&2; exit 1; }; \
     test -L /opt || { echo "ERROR: /opt is no longer a symlink — ostree layout broken" >&2; exit 1; }; \

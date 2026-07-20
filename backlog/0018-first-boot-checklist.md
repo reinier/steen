@@ -86,7 +86,11 @@ backlog item for anything that fails.
 - [ ] `distrobox create` works — the ad-hoc CLI-tooling path that replaces brew.
 - [ ] `systemctl list-timers` shows **no OS auto-update timer**; `flatpak update` and
       `bootc upgrade` are separate manual actions.
-- [ ] Clock/timezone correct and NTP synced (`timedatectl`).
+- [ ] Clock/timezone correct and NTP synced (`timedatectl` shows
+      `System clock synchronized: yes`). The timezone should already be whatever the
+      installer set — Steen deliberately doesn't bake one ([0013](0013-first-boot-defaults.md)).
+      **Verify a time daemon is enabled** (Fedora defaults to `chronyd`); add one only
+      if the base turns out not to.
 
 ## G. Config layer (0014)
 

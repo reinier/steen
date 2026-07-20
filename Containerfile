@@ -219,15 +219,23 @@ COPY files/60-1password-ptrace.conf /usr/lib/sysctl.d/60-1password-ptrace.conf
 
 # --- CLI toolkit (backlog/0007) ---
 # Baked so it's present at boot and updates with the image. Steen ships no Homebrew
-# (0015), so this is the whole CLI baseline. Fedora covers all of it except starship
-# and yazi — including lazygit, which rheniite still had to take from Terra.
-RUN dnf5 -y install fish eza bat jq zip fuse-sshfs lazygit \
+# (0015), so this is the whole CLI baseline.
+RUN dnf5 -y install fish eza bat jq zip fuse-sshfs \
  && dnf5 clean all
-# Terra second, and only for the two Fedora lacks, so it can't shadow Fedora packages.
+# Terra second, and only for what Fedora lacks, so it can't shadow Fedora packages.
 COPY files/terra.repo /etc/yum.repos.d/terra.repo
 RUN dnf5 -y install starship yazi \
  && rm -f /etc/yum.repos.d/terra.repo \
  && dnf5 clean all
+# lazygit is packaged in NEITHER Fedora nor Terra (verified for f43/f44, terra and
+# terra-extras). Rather than add a third-party COPR for a single tool, bake the
+# upstream release binary — the same pinned-artifact pattern as keyd and the Nerd Font.
+ARG LAZYGIT_VERSION=0.63.1
+RUN curl -fsSL -o /tmp/lazygit.tar.gz \
+      "https://github.com/jesseduffield/lazygit/releases/download/v${LAZYGIT_VERSION}/lazygit_${LAZYGIT_VERSION}_linux_x86_64.tar.gz" \
+ && tar -xzf /tmp/lazygit.tar.gz -C /usr/bin lazygit \
+ && chmod 0755 /usr/bin/lazygit \
+ && rm -f /tmp/lazygit.tar.gz
 
 # --- Synology Drive (backlog/0008) ---
 # The -noextra variant keeps the Nautilus extension (a compiled .so in %{_libdir},
@@ -280,8 +288,9 @@ RUN dnf5 -y install system-config-printer cups-pk-helper \
 # a 1Password that fails its own integrity check at runtime.
 RUN set -e; \
     rpm -q chromium libavcodec-freeworld 1password 1password-cli \
-           fish eza bat jq zip fuse-sshfs lazygit starship yazi \
+           fish eza bat jq zip fuse-sshfs starship yazi \
            synology-drive-noextra tailscale system-config-printer cups-pk-helper >/dev/null; \
+    command -v lazygit >/dev/null || { echo "ERROR: lazygit binary missing" >&2; exit 1; }; \
     ! rpm -q firefox >/dev/null 2>&1 || { echo "ERROR: firefox reappeared" >&2; exit 1; }; \
     test -L /opt || { echo "ERROR: /opt is no longer a symlink — ostree layout broken" >&2; exit 1; }; \
     test -d /usr/lib/opt/1Password || { echo "ERROR: 1Password payload not relocated into /usr" >&2; exit 1; }; \

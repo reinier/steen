@@ -28,16 +28,27 @@ depends on live Terra updates; otherwise remove-after like the other sources.
 > if so, trim them off Terra and shrink the third-party surface to just
 > `starship` (or drop Terra entirely).
 
-## Implemented (2026-07-20) — Terra shrank to two packages
+## Implemented (2026-07-20), in three sources
 
-Checked what Fedora 44 actually ships before wiring Terra, and **`lazygit` is now in
-Fedora** (0.62.2) — rheniite still had to take it from Terra. So Terra is needed for
-**`starship` and `yazi` only**; everything else (`fish` 4.6.0, `eza`, `bat`, `jq`,
-`zip`, `fuse-sshfs`, `lazygit`) comes from Fedora.
+| Source | Packages |
+|---|---|
+| **Fedora** | `fish` 4.6.0, `eza`, `bat`, `jq`, `zip`, `fuse-sshfs` |
+| **Terra** | `starship` 1.26.0, `yazi` 26.5.6 |
+| **Upstream release binary** | `lazygit` 0.63.1 (pinned `ARG LAZYGIT_VERSION`) |
 
-Fedora packages are installed **first**, and `terra.repo` is only dropped in for the
-second transaction and removed straight after, with `priority=200` (higher number =
-lower priority) so Terra can never quietly shadow a Fedora package that exists in both.
+Fedora packages install **first**; `terra.repo` is dropped in only for the second
+transaction and removed straight after, with `priority=200` (higher number = lower
+priority) so Terra can never quietly shadow a Fedora package present in both.
+
+> **Correction.** An earlier pass claimed lazygit was now in Fedora and dropped it from
+> Terra. That was wrong — the check had been run against a workstation with a
+> `copr:dejan:lazygit` repo enabled, so it was reading a COPR, not Fedora. The build
+> caught it (`No match for argument: lazygit`). Verified properly since: lazygit is in
+> **neither** Fedora (43 or 44) **nor** Terra (main or extras).
+>
+> Rather than add a third-party COPR for one tool, it's baked from the upstream
+> release tarball — the same pinned-artifact pattern already used for keyd and the
+> Nerd Font. Being outside rpm, it's guarded with `command -v` instead of `rpm -q`.
 
 ## No Homebrew (0015)
 

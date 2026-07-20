@@ -73,32 +73,46 @@ RUN missing=""; \
 # sway/Hyprland it delegates X11 entirely to the satellite, which drives the
 # xorg-x11-server-Xwayland already present in the base. Without it, X11 apps can't run.
 #
+# No version numbers anywhere here: Steen tracks the COPR's *stable channel*, so a new
+# upstream release is picked up by the next rebuild rather than needing an edit.
+# `dms` pulls its own stack — `dms-cli` (a strict `= %{version}` dep) and quickshell —
+# so only `dms` is named.
+#
 # Repos are added for this one transaction then deleted, so the booted system has no
 # COPRs configured; updates arrive via image rebuilds.
 COPY files/avengemedia-dms.repo files/avengemedia-danklinux.repo /etc/yum.repos.d/
 RUN dnf5 -y install \
       niri kitty xwayland-satellite \
-      dms quickshell \
- && { dnf5 -y install dms-cli \
-      || echo "note: no separate dms-cli package — the CLI ships inside dms"; } \
+      dms \
  && rm -f /etc/yum.repos.d/avengemedia-dms.repo \
           /etc/yum.repos.d/avengemedia-danklinux.repo \
  && dnf5 clean all
 
-# Guard: assert the desktop core landed AND that the dms/quickshell pairing is the
-# intended one. `dms` is the Go CLI behind `dms ipc`, theming and shell control that
-# every keybind and launcher menu calls. The version checks are the important part:
-# they fail the build rather than shipping DMS 1.5 against Fedora's quickshell 0.2.1.
+# Guard: assert PROVENANCE, not versions.
+#
+# dms's quickshell dependency is the UNVERSIONED `(quickshell or quickshell-git)`, so
+# rpm is equally satisfied by Fedora's much older quickshell — it only resolves to the
+# COPR build because that repo is enabled and dnf takes the highest version. That makes
+# the pairing an accident of repo ordering rather than something rpm enforces, and a
+# silently mismatched quickshell is what crashed the shell on 2026-06-12.
+#
+# So: check quickshell came from the avengemedia channel (same train as dms). This
+# holds for every future release without pinning a number.
 RUN set -e; \
-    rpm -q niri kitty xwayland-satellite dms quickshell >/dev/null; \
+    rpm -q niri kitty xwayland-satellite dms dms-cli quickshell >/dev/null; \
     ! rpm -q DankMaterialShell >/dev/null 2>&1 \
       || { echo "ERROR: Fedora's DankMaterialShell is installed alongside COPR dms" >&2; exit 1; }; \
     command -v niri >/dev/null || { echo "ERROR: niri binary missing" >&2; exit 1; }; \
     command -v dms  >/dev/null || { echo "ERROR: dms CLI missing" >&2; exit 1; }; \
-    dms_v="$(rpm -q --qf '%{VERSION}' dms)"; qs_v="$(rpm -q --qf '%{VERSION}' quickshell)"; \
-    echo "desktop core: niri $(rpm -q --qf '%{VERSION}' niri), dms ${dms_v}, quickshell ${qs_v}"; \
-    case "$dms_v" in 1.5*) ;; *) echo "ERROR: expected dms 1.5.x, got ${dms_v}" >&2; exit 1;; esac; \
-    case "$qs_v"  in 0.3*) ;; *) echo "ERROR: dms 1.5 needs quickshell 0.3.x, got ${qs_v} (Fedora's is 0.2.1)" >&2; exit 1;; esac
+    qs_repo="$(dnf5 repoquery --installed --qf '%{from_repo}' quickshell | head -1)"; \
+    case "$qs_repo" in \
+      *avengemedia*) ;; \
+      *) echo "ERROR: quickshell came from '${qs_repo}', not the avengemedia COPR." >&2; \
+         echo "       dms only declares '(quickshell or quickshell-git)' with no version," >&2; \
+         echo "       so it accepts Fedora's older build and then breaks at runtime." >&2; \
+         exit 1;; \
+    esac; \
+    echo "desktop core: niri $(rpm -q --qf '%{VERSION}' niri), dms $(rpm -q --qf '%{VERSION}' dms), quickshell $(rpm -q --qf '%{VERSION}' quickshell) [${qs_repo}]"
 
 # --- Image-update trust (backlog/0001) ---
 # Steen boots this image, so it must verify its own update stream

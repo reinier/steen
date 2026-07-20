@@ -15,8 +15,13 @@
 
 ```dockerfile
 # Fedora:  niri kitty xwayland-satellite
-# COPR:    dms (avengemedia/dms) + quickshell (avengemedia/danklinux)
+# COPR:    dms   (avengemedia/dms; pulls dms-cli + quickshell + dgop itself)
 ```
+
+**Track the channel, not a version.** No version numbers appear in the Containerfile:
+Steen follows the COPR's *stable* (tagged-release) channel, so a new upstream release
+arrives with the next rebuild instead of requiring an edit. Only `dms` is named —
+`dms-cli` is a strict `= %{version}` dependency and quickshell comes in with it.
 
 **`xwayland-satellite` is not optional.** niri has *no* built-in Xwayland — unlike
 sway/Hyprland it delegates X11 entirely to the satellite, which drives the
@@ -44,10 +49,26 @@ DMS COPR. So dms and quickshell are taken **as a matched pair** from upstream's
 **stable, tagged-release** COPRs (`avengemedia/dms` + `avengemedia/danklinux`) —
 explicitly *not* the rolling `dms-git`/`quickshell-git`.
 
-The Containerfile guard **enforces** this: it fails the build unless `dms` is 1.5.x
-*and* `quickshell` is 0.3.x, and unless Fedora's `DankMaterialShell` is absent (two
-shells installed side by side would be worse than either alone). The pairing can
-therefore never silently regress.
+### The dependency does *not* protect us — hence the guard
+
+`dms` declares:
+
+```
+Requires: (quickshell or quickshell-git)     <-- UNVERSIONED
+Requires: dms-cli = %{version}               <-- strict
+```
+
+So rpm pulls quickshell automatically (no need to name it), but it is **equally
+satisfied by Fedora's much older quickshell**. The build only lands on the COPR one
+because that repo is enabled and dnf takes the highest version — i.e. the correct
+pairing is an *accident of repo ordering*, not something rpm enforces. That is exactly
+how a mismatched quickshell could sneak back in.
+
+The Containerfile guard therefore asserts **provenance, not versions**: quickshell must
+have come from the `avengemedia` channel (`%{from_repo}`), and Fedora's
+`DankMaterialShell` must be absent (two shells side by side would be worse than
+either). This holds for every future release **without pinning a number**, so upstream
+bumps flow through instead of turning into a red build.
 
 ## Consequences
 
@@ -56,19 +77,21 @@ therefore never silently regress.
   (`avengemedia/dms`) rather than a whole new class of dependency — but the "100%
   Fedora desktop" claim in the README and 0000 is retired. Both repos are added for the
   one transaction and **deleted afterwards**; the booted system has no COPRs configured.
-- **We now own version-matching.** When DMS releases, check quickshell's required
-  version before bumping. The guard turns a mismatch into a failed build, not a broken
-  desktop.
+- **We track the stable channel, not versions.** Upstream releases flow in on the next
+  rebuild; nothing to bump by hand. The provenance guard turns a channel mismatch into
+  a failed build rather than a broken desktop.
 - **Escape hatch:** if the COPR pairing proves unstable, drop back to Fedora's
   `DankMaterialShell` + `quickshell` (older but co-tested) by reverting this layer.
 
 ## The `dms` CLI
 
 `dms` is the Go CLI/daemon behind `dms ipc`, theming and shell control — every
-dank-lader entry and niri keybind depends on it. Fedora's `DankMaterialShell` shipped
-`/usr/bin/dms` directly (confirmed in the build log). The COPR historically split
-`dms` and `dms-cli`, so the install tolerantly adds `dms-cli` if such a package exists
-and the guard hard-fails if `command -v dms` comes up empty either way.
+dank-lader entry and niri keybind depends on it. Packaging differs by source, which is
+why the guard checks `command -v dms` rather than assuming:
+
+- **Fedora's `DankMaterialShell`** shipped `/usr/bin/dms` inside the main package.
+- **The COPR splits it** into `dms` + `dms-cli`, tied together by a strict
+  `Requires: dms-cli = %{version}` — so naming `dms` is enough.
 
 ## Verification
 

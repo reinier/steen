@@ -58,6 +58,35 @@ RUN missing=""; \
     fi; \
     echo "base plumbing intact"
 
+# --- niri + DankMaterialShell desktop (backlog/0003) ---
+# The whole desktop core from Fedora stable — no COPRs. This is the payoff of basing
+# on Fedora: niri 26.04 and DankMaterialShell are co-tested Fedora packages rather
+# than rolling git COPR builds.
+#
+# `DankMaterialShell` Requires the DMS runtime, so quickshell/dgop/matugen/danksearch/
+# cliphist/cava arrive transitively (asserted below rather than named here).
+# `xwayland-satellite` is required because niri has NO built-in Xwayland — unlike
+# sway/Hyprland it delegates X11 entirely to the satellite, which drives the
+# xorg-x11-server-Xwayland already present in the base. Without it, X11 apps can't run.
+RUN dnf5 -y install \
+      niri \
+      DankMaterialShell \
+      kitty \
+      xwayland-satellite \
+ && dnf5 clean all
+
+# Guard: assert the desktop core landed, including the transitive DMS runtime and the
+# `dms` CLI — the Go binary behind `dms ipc`, theming and shell control that every
+# keybind and launcher menu calls. Prints the binaries DankMaterialShell ships so a
+# packaging split is diagnosable from the build log rather than at first boot.
+RUN set -e; \
+    rpm -q niri DankMaterialShell kitty xwayland-satellite quickshell >/dev/null; \
+    echo "--- binaries shipped by DankMaterialShell ---"; \
+    rpm -ql DankMaterialShell | grep -E '/s?bin/' || true; \
+    command -v niri >/dev/null || { echo "ERROR: niri binary missing" >&2; exit 1; }; \
+    command -v dms  >/dev/null || { echo "ERROR: dms CLI missing - look for a separate dms/dms-cli package" >&2; exit 1; }; \
+    echo "desktop core OK: $(rpm -q --qf '%{VERSION}' niri) niri, $(rpm -q --qf '%{VERSION}' DankMaterialShell) DMS"
+
 # --- Image-update trust (backlog/0001) ---
 # Steen boots this image, so it must verify its own update stream
 # (ghcr.io/reinier/steen). The fedora-ostree-desktops base ships only Fedora's

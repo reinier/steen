@@ -1,6 +1,7 @@
 # niri + DankMaterialShell desktop, from Fedora stable
 
-- **Status:** accepted
+- **Status:** in-progress (implemented 2026-07-20; real-boot checks in
+  [0018](0018-first-boot-checklist.md))
 - **Created:** 2026-07-19
 - **Area:** image (`Containerfile`)
 - **Depends:** 0002
@@ -58,9 +59,26 @@ into `/usr/share/steen/...` (like Zirconium's zdots) or ships it purely via
 `dotfiles-steen`. **Do not** carry Zirconium's zdots — it's authored against
 git-HEAD DMS/niri and will skew against these stable binaries.
 
+## Implemented (2026-07-20)
+
+`Containerfile` installs `niri DankMaterialShell kitty xwayland-satellite` from Fedora
+stable — **no COPRs**. `quickshell` and the rest of the DMS runtime are left to come in
+transitively and are *asserted* rather than named. A guard step then checks the core
+landed, prints the binaries `DankMaterialShell` ships, and hard-fails if the **`dms`
+CLI** is missing (with a hint to look for a split `dms`/`dms-cli` package) — so a
+packaging surprise shows up in the build log, not at first boot.
+
+**Why `xwayland-satellite` is not optional:** niri has no built-in Xwayland (unlike
+sway/Hyprland); it delegates X11 entirely to the satellite, which drives the
+`xorg-x11-server-Xwayland` already in the base. Installing it is necessary but not
+sufficient — something must *start* it (niri config / dotfiles), which is why that's a
+first-boot check.
+
 ## Verification
 
-- After 0004's greeter lands: log in, DMS bar/launcher/notifications come up,
-  matugen theming applies, `niri msg` responds, `dms` IPC verbs work.
-- `xwayland-satellite` running → an X11 app (e.g. an Electron app forced to X11)
-  displays.
+CI (done): packages resolve, `quickshell` arrives transitively, `niri` and `dms`
+binaries exist, image lints and signs.
+
+Real hardware (tracked in [0018](0018-first-boot-checklist.md)): DMS bar/launcher/
+notifications come up, matugen theming applies, `niri msg` and `dms ipc` respond, and
+an X11 app actually displays.

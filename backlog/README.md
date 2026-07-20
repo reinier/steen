@@ -77,3 +77,13 @@ Most items are a **translation**, not a fresh design:
     (bootc / Flatpak), updated manually and separately; no uupd, no auto-update timer.
 17. [0017-hardware-session-niceties.md](0017-hardware-session-niceties.md) — audit +
     re-add fingerprint/firmware/thunderbolt/etc.; OpenRGB and CJK dropped.
+18. [0018-first-boot-checklist.md](0018-first-boot-checklist.md) — **living**
+    collection point for everything that can only be verified on real hardware.
+
+## Closing items
+
+CI going green proves packages resolve and the image lints — not that niri starts or
+the fingerprint reader enrolls. So: **an item may be closed once it's implemented and
+CI-green, provided its real-hardware checks are migrated to
+[`0018`](0018-first-boot-checklist.md).** That keeps the build moving without quietly
+losing track of what hasn't actually been proven.

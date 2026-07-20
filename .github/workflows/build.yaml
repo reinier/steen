@@ -42,11 +42,9 @@ jobs:
         run: |
           echo "${{ secrets.GITHUB_TOKEN }}" | podman login ghcr.io -u "${{ github.actor }}" --password-stdin
 
-          # :latest plus an immutable dated snapshot, so there's always a pinnable
-          # rollback target (see backlog/0000, backlog/0001).
-          snapshot="latest.$(date +%Y%m%d)"
+          # Only :latest — no pinning, no dated snapshot tags (see backlog/0001).
+          # Recovery is `bootc rollback` to the previously booted deployment.
           podman tag "${IMAGE_NAME}:latest" "${REGISTRY}/${IMAGE_NAME}:latest"
-          podman tag "${IMAGE_NAME}:latest" "${REGISTRY}/${IMAGE_NAME}:${snapshot}"
 
           sign_args=()
           if [ -n "${SIGNING_SECRET}" ]; then
@@ -67,4 +65,3 @@ jobs:
           fi
 
           podman push "${sign_args[@]}" "${REGISTRY}/${IMAGE_NAME}:latest"
-          podman push "${sign_args[@]}" "${REGISTRY}/${IMAGE_NAME}:${snapshot}"

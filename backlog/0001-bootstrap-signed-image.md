@@ -7,9 +7,7 @@
 - **Related:** rheniite's signing setup
   ([`README.md` "Signed updates"](../../rheniite/rheniite/README.md),
   `patch-policy.py`, `reinier.pub`, `files/reinier-registries.yaml`,
-  `.github/workflows/`); rheniite
-  [`backlog/pin-stable-base.md`](../../rheniite/rheniite/backlog/pin-stable-base.md)
-  (base-pinning discipline to inherit from day one).
+  `.github/workflows/`).
 
 ## Goal
 
@@ -41,9 +39,10 @@ exists" if omitted).
   start; a fresh key is cleaner isolation later.
 - **Registry / name:** `ghcr.io/reinier/steen`. Greenfield — call it `steen`
   throughout, no internal alias (unlike the zirconium/zirconolite convention).
-- **Base pin:** `sway-atomic:44` by tag to start; fold in the
-  [pin-stable-base](../../rheniite/rheniite/backlog/pin-stable-base.md) discipline
-  early (pin a digest, promote deliberately) rather than retrofitting.
+- **Base pin:** **none.** The `FROM` floats on `sway-atomic:44` and always takes the
+  latest Fedora 44 base; the daily cron rebuild is what pulls it in. rheniite's
+  `pin-stable-base` discipline is deliberately **not** carried over — Steen tracks
+  latest and relies on `bootc rollback` if a base regresses.
 
 ## Implementation sketch
 
@@ -63,27 +62,35 @@ exists" if omitted).
    rheniite (adjust namespace comments to Steen). If `patch-policy.py` assumes
    Zirconium's exact `policy.json` shape, adapt it to the Sway Atomic base's policy.
 2. CI (`.github/workflows/build.yaml`): build **x86_64**, `cosign sign` with
-   `SIGNING_SECRET`, push `:latest` + an immutable dated snapshot (`:latest.YYYYMMDD`)
-   for a rollback target. Build on push, PR, and a daily cron (new base images).
+   `SIGNING_SECRET`, push `:latest` only (no snapshot/pin tags). Build on push, PR,
+   and a daily cron (new base images).
 3. Copy rheniite's `.github/` and repo-secret setup.
 
 ## Progress (2026-07-20)
 
-Deliverables written: `Containerfile` (`FROM quay.io/fedora-ostree-desktops/sway-atomic:44`
-— ref confirmed to exist, with dated snapshots like `44.20260720.0` available for
-pinning), `patch-policy.py`, `files/steen-registries.yaml`, `cosign.pub` (the provided
-signing public key), and `.github/workflows/build.yaml` (build + `bootc container lint`
-+ signed push of `:latest` and a dated `:latest.YYYYMMDD` snapshot).
+Deliverables written: `Containerfile` (`FROM quay.io/fedora-ostree-desktops/sway-atomic:44`),
+`patch-policy.py`, `files/steen-registries.yaml`, `cosign.pub`, and
+`.github/workflows/build.yaml`.
 
-**Blocking to actually sign:** the matching **sigstore private key** must be added as
-the `SIGNING_SECRET` repo secret. The workflow assumes a **passphrase-less** key
-(`--sign-passphrase-file=/dev/null`); if the key has a passphrase, add a passphrase
-secret and point that flag at it. Until the secret is set, CI pushes **unsigned**, and
-`bootc switch` will reject the image (the baked policy requires a signature).
+**First build is green** (run `29730188115`, 6m40s): `podman build` ✅,
+`bootc container lint` ✅, and the push **signed** the image
+(`Creating signature: Signing image using a sigstore signature`). `SIGNING_SECRET`
+was already set, and the key is the same one rheniite signs with — so Steen and
+rheniite share the `ghcr.io/reinier` trust root. The key is passphrase-less, matching
+the workflow's `--sign-passphrase-file=/dev/null`.
 
-**Follow-ups (not blocking the first green build):** pin the base to a digest/snapshot
-and promote deliberately (fold in `pin-stable-base` discipline); decide whether to make
-the `ghcr.io/reinier/steen` package public.
+**Decided 2026-07-20:**
+- **No pinning.** `FROM` floats on `sway-atomic:44`, always latest F44. Steen also
+  publishes **only `:latest`** — no dated snapshot tags. `bootc rollback` is the
+  recovery path.
+- **Package is public.** `ghcr.io/reinier/steen` must be public: GHCR packages default
+  to *private*, and a private package would make `bootc switch` fail without registry
+  auth — breaking the documented install. (The repo is already public, which is what
+  makes Actions minutes free; public packages also keep storage/egress free.)
+
+**Remaining before this item is done:** set the package public (one-time, via the
+GitHub UI — there's no REST endpoint for container-package visibility), then run the
+end-to-end check below: `bootc switch` on a real machine/VM.
 
 ## Verification
 

@@ -1,0 +1,7 @@
+# PAM stack for the greetd-spawned session (referenced by /etc/greetd/config.toml).
+# Identical to the stock `greetd` stack, plus pam_env forcing XDG_SESSION_TYPE=wayland
+# so the session is unambiguously Wayland for portals and toolkits.
+auth       include      greetd
+auth       required     pam_env.so conffile=/usr/share/greetd/greetd-spawn.pam_env.conf
+account    include      greetd
+session    include      greetd

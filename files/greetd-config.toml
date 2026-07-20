@@ -1,0 +1,21 @@
+# Steen login: dms-greeter drives niri directly, so the machine boots straight into
+# the desktop with no session picker.
+#
+# `service = "greetd-spawn"` selects the PAM stack at /usr/lib/pam.d/greetd-spawn,
+# which forces XDG_SESSION_TYPE=wayland for the spawned session.
+#
+# No --cache-dir flag: /var/cache/dms-greeter is dms-greeter's own default, and the
+# dms-greeter package's tmpfiles.d creates it (0750 greeter:greeter).
+#
+# To customise the greeter's niri setup (keyboard layout, output scale, ...), drop a
+# niri_overrides.kdl into /usr/share/greetd/ — dms-greeter reads that path explicitly
+# for system images, with /etc/greetd/niri_overrides.kdl for local overrides.
+[general]
+service = "greetd-spawn"
+
+[terminal]
+vt = 1
+
+[default_session]
+command = "dms-greeter --command niri"
+user = "greeter"

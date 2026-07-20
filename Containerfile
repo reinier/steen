@@ -114,6 +114,44 @@ RUN set -e; \
     esac; \
     echo "desktop core: niri $(rpm -q --qf '%{VERSION}' niri), dms $(rpm -q --qf '%{VERSION}' dms), quickshell $(rpm -q --qf '%{VERSION}' quickshell) [${qs_repo}]"
 
+# --- Login: greetd + dms-greeter (backlog/0004) ---
+# Boots straight into niri, no session picker. dms-greeter comes from the same
+# avengemedia/danklinux channel already used for quickshell, so it rides the same
+# release train as dms; it Requires greetd, which Fedora provides.
+#
+# Deliberately NOT hand-written here (unlike Zirconium, which predates these):
+#   * sysusers.d / tmpfiles.d — the dms-greeter package ships its own, creating the
+#     `greeter` user, /var/cache/dms-greeter and /var/lib/greeter.
+#   * --cache-dir — /var/cache/dms-greeter is already dms-greeter's default.
+#   * the sed that stripped a stale niri `debug {}` block from the greeter — that
+#     block no longer exists as of dms-greeter 1.5.x, so the patch is obsolete.
+COPY files/avengemedia-danklinux.repo /etc/yum.repos.d/
+RUN dnf5 -y install dms-greeter \
+ && rm -f /etc/yum.repos.d/avengemedia-danklinux.repo \
+ && dnf5 clean all
+
+COPY files/greetd-config.toml /etc/greetd/config.toml
+COPY files/greetd-spawn.pam /usr/lib/pam.d/greetd-spawn
+COPY files/greetd-spawn.pam_env.conf /usr/share/greetd/greetd-spawn.pam_env.conf
+
+# greetd is the login path; dms.service (shipped by dms as a user unit) is the shell
+# inside each user session.
+RUN systemctl enable greetd.service \
+ && systemctl --global enable dms.service
+
+# Guard: the greeter must be installed and wired, and no second display manager may
+# exist — the base's sddm was removed by 0002's cascade and must stay gone, or two
+# DMs would fight over the seat. Versions are printed (not asserted) so drift between
+# dms and dms-greeter is visible in the log without pinning numbers.
+RUN set -e; \
+    rpm -q greetd dms-greeter >/dev/null; \
+    command -v dms-greeter >/dev/null || { echo "ERROR: dms-greeter binary missing" >&2; exit 1; }; \
+    test -f /etc/greetd/config.toml || { echo "ERROR: greetd config missing" >&2; exit 1; }; \
+    test -f /usr/lib/pam.d/greetd-spawn || { echo "ERROR: greetd-spawn PAM stack missing" >&2; exit 1; }; \
+    ! rpm -q sddm >/dev/null 2>&1 || { echo "ERROR: sddm is installed alongside greetd" >&2; exit 1; }; \
+    systemctl is-enabled greetd.service >/dev/null || { echo "ERROR: greetd.service is not enabled" >&2; exit 1; }; \
+    echo "login: greetd $(rpm -q --qf '%{VERSION}' greetd) + dms-greeter $(rpm -q --qf '%{VERSION}' dms-greeter) (dms $(rpm -q --qf '%{VERSION}' dms))"
+
 # --- Image-update trust (backlog/0001) ---
 # Steen boots this image, so it must verify its own update stream
 # (ghcr.io/reinier/steen). The fedora-ostree-desktops base ships only Fedora's

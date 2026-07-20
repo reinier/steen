@@ -1,6 +1,7 @@
 # Login: greetd + dms-greeter, straight into niri
 
-- **Status:** accepted
+- **Status:** in-progress (implemented 2026-07-20; real-boot checks in
+  [0018](0018-first-boot-checklist.md))
 - **Created:** 2026-07-19
 - **Area:** image (`Containerfile`, greeter config, PAM, sysusers/tmpfiles, preset)
 - **Depends:** 0002, 0003
@@ -51,8 +52,46 @@ visible, not smuggled.
    the dms-greeter config and verified the niri build — re-check whether the
    **stable** niri/dms-greeter still need that patch (likely not; verify).
 
+## Implemented (2026-07-20)
+
+Inspected the actual `dms-greeter` 1.5.2 package before porting, which made most of
+Zirconium's scaffolding unnecessary:
+
+| Zirconium did | Steen | Why |
+|---|---|---|
+| hand-wrote `sysusers.d` (`greeter`, uid 767) | **omitted** | the package ships its own (dynamic uid) |
+| hand-wrote `tmpfiles.d` for the cache dir | **omitted** | the package creates `/var/cache/dms-greeter` + `/var/lib/greeter` |
+| passed `--cache-dir /var/cache/dms-greeter` | **omitted** | that's already the binary's default |
+| `sed` out a stale niri `debug {}` block | **omitted** | verified gone from the 1.5.2 binary — the FIXME's "when dms-greeter gets a new release" has happened |
+| `-C /etc/greetd/niri/config.kdl` | **omitted** | `-C` is for a *custom compositor config*; the niri hook is now `/usr/share/greetd/niri_overrides.kdl` |
+| PAM `greetd-spawn` + `pam_env` wayland | **kept** | still the way to force `XDG_SESSION_TYPE=wayland` |
+
+So Steen installs `dms-greeter` (which pulls `greetd` from Fedora) and ships three
+small files: `/etc/greetd/config.toml`, `/usr/lib/pam.d/greetd-spawn`, and the
+`pam_env` conf. `greetd.service` is enabled; `dms.service` (a user unit shipped by
+`dms`) is enabled `--global` so the shell starts in every user session.
+
+**Version tracking:** `dms-greeter` lives in the same `avengemedia/danklinux` channel
+already enabled for quickshell, so it follows the same stable train as `dms` — no
+version pins. The guard *prints* greetd/dms-greeter/dms versions so drift is visible,
+and hard-fails if `sddm` ever reappears (two display managers fighting over the seat).
+
+## Deferred to first boot
+
+- **Keyring auto-unlock.** Zirconium additionally `sed`-ed `/etc/pam.d/greetd` to
+  enable the `gnome_keyring.so` lines. Not ported blind — Fedora's stock greetd PAM
+  may already differ, and the base ships `gcr3` rather than `gcr`. Verify whether the
+  keyring unlocks at login and patch only if it doesn't ([0018](0018-first-boot-checklist.md) §B/§C).
+- **Greeter appearance.** Zirconium seeded the greeter's DMS settings/colours from its
+  baked `zdots`; Steen has no baked config, so the greeter uses defaults. If it should
+  match the desktop theme, that's a `/usr/share/greetd/niri_overrides.kdl` + greeter
+  settings job later.
+
 ## Verification
 
-- Reboot → dms-greeter appears (Material look), password logs straight into a niri
-  session, no picker.
-- `loginctl` shows a wayland session; keyring is unlocked (no second prompt).
+CI (done): `greetd` + `dms-greeter` installed, config/PAM present, `greetd.service`
+enabled, no `sddm`.
+
+Real hardware ([0018](0018-first-boot-checklist.md)): dms-greeter appears, password
+logs straight into niri with no picker, `loginctl` shows a wayland session, keyring
+unlocked without a second prompt.

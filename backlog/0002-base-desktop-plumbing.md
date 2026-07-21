@@ -106,6 +106,24 @@ Audit corrections worth noting: most base-desktop plumbing was already present
 (so nothing was reinstalled), the polkit agent is **`lxqt-policykit`**, and the
 keyring ships **`gcr3`** rather than `gcr`.
 
+### Second leftover sweep (2026-07-21) — surfaced on real hardware
+
+The first cut removed the obvious Sway *desktop* (waybar/rofi/etc.), but a lot of
+Sway-spin **apps/agents** remained and showed up on the running system: a redundant
+`nm-applet` wifi tray icon, and launcher entries the user never chose. An image audit
+(`audit-leftovers.yaml`, since removed) enumerated `/etc/xdg/autostart` + the
+`.desktop` set. Removed (guarded, skip-if-absent):
+
+- `network-manager-applet` + `nm-connection-editor` (the wifi tray icon; DMS owns network)
+- `xfce4-panel`, `tuned-switcher`, `xarchiver`, `imv` (stray launcher entries)
+- `ibus` + CJK engines (typing-booster/m17n/anthy/hangul/chewing/libpinyin) — CJK dropped in 0017
+- `orca`, `localsearch` (screen-reader + tracker file-indexer autostarts)
+- masked the `geoclue-demo-agent` autostart (kept geoclue2 itself)
+
+Kept deliberately: `pavucontrol` (advanced audio routing DMS's basic controls lack),
+`lxqt-policykit`, `gnome-keyring`, `grim`/`slurp`/`wlr-randr`. The absence guard asserts
+the leftovers are gone *and* the base plumbing survived the cascade.
+
 ## Regression found on first boot (2026-07-20) — the removals didn't stick
 
 The subtraction here removed waybar/etc., but the image booted with **waybar running

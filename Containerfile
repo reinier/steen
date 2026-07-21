@@ -152,6 +152,41 @@ RUN set -e; \
     esac; \
     echo "desktop core: niri $(rpm -q --qf '%{VERSION}' niri), dms $(rpm -q --qf '%{VERSION}' dms), quickshell $(rpm -q --qf '%{VERSION}' quickshell) [${qs_repo}]"
 
+# --- Remove Sway-spin leftovers (backlog/0002; audited 2026-07-21) ---
+# The base ships apps/agents redundant with DMS/niri, found via an image audit:
+#  - network-manager-applet / nm-connection-editor : the nm-applet wifi tray icon (DMS owns network UI)
+#  - xfce4-panel / tuned-switcher / xarchiver / imv : stray launcher entries not chosen
+#  - ibus + CJK engines                             : IME stack (CJK dropped in 0017)
+#  - orca / localsearch                             : screen-reader + tracker file indexer autostarting
+# KEPT on purpose: pavucontrol (advanced audio routing), lxqt-policykit (the working
+# polkit agent), gnome-keyring, grim/slurp/wlr-randr (useful wlroots CLI), geoclue2
+# (only its demo-agent autostart is masked below). Removed one-by-one and skip-if-absent
+# so a renamed/missing package never fails the transaction; the absence guard is the net.
+RUN for p in network-manager-applet nm-connection-editor \
+             xfce4-panel tuned-switcher xarchiver imv \
+             orca localsearch \
+             ibus-typing-booster ibus-m17n ibus-anthy ibus-hangul ibus-chewing \
+             ibus-libpinyin ibus-setup ibus-panel ibus; do \
+      rpm -q "$p" >/dev/null 2>&1 && dnf5 -y remove "$p" || true; \
+    done; \
+    dnf5 clean all || true
+# geoclue2 stays (location service), but its demo agent shouldn't autostart a tray thing.
+RUN rm -f /etc/xdg/autostart/geoclue-demo-agent.desktop
+
+# Absence guard: the leftovers must be gone AND the base plumbing / polkit agent must
+# have survived any dependency cascade (the lesson from the system-config-printer /
+# waybar cascades — always guard both).
+RUN set -e; present=""; \
+    for p in network-manager-applet nm-connection-editor xfce4-panel tuned-switcher \
+             xarchiver imv orca localsearch ibus; do \
+      rpm -q "$p" >/dev/null 2>&1 && present="$present $p"; \
+    done; \
+    [ -z "$present" ] || { echo "ERROR: Sway-spin leftovers still present:$present" >&2; exit 1; }; \
+    ! test -e /etc/xdg/autostart/geoclue-demo-agent.desktop || { echo "ERROR: geoclue demo autostart still present" >&2; exit 1; }; \
+    rpm -q pipewire wireplumber NetworkManager xdg-desktop-portal-gnome polkit \
+           lxqt-policykit gnome-keyring nautilus dms niri pavucontrol >/dev/null; \
+    echo "sway-spin leftovers removed; base plumbing + polkit agent + pavucontrol intact"
+
 # --- Login: greetd + dms-greeter (backlog/0004) ---
 # Boots straight into niri, no session picker. dms-greeter comes from the same
 # avengemedia/danklinux channel already used for quickshell, so it rides the same

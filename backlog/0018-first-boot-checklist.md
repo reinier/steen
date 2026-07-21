@@ -86,7 +86,7 @@ bluetoothctl show                                # controller present + powered
 - [ ] Fingerprint enrolls and unlocks login + `sudo`.
 - [x] `fwupd` sees firmware (`fwupdmgr get-devices` ✓); an update applies.
 - [x] Thunderbolt/dock authorizes; external display works ✓ — external monitor over USB-C/Thunderbolt drives an image.
-- [ ] Suspend/resume, lid, battery, brightness keys.
+- [~] Suspend/resume, lid, battery, brightness keys — **suspend/resume ✓** (`rtcwake -m mem` cycle: WiFi/audio/BT all return, `journalctl -p err` clean). Lid/battery/brightness-keys still to confirm.
 
 ```sh
 fprintd-enroll                                   # follow prompts to enroll
@@ -175,3 +175,4 @@ Record what actually failed here, with the follow-up item it produced.
 | 2026-07-21 | F: `apps` distrobox + yt-dlp | ✅ Fedora toolbox assembles, yt-dlp installed+exported | Arch image path was retired/auth-walled → switched to Fedora (yt-dlp is in official repos) |
 | 2026-07-21 | C: screencast (portal `-gnome`); D: external display over USB-C/TB | ✅ both pass | — |
 | 2026-07-21 | C: Bluetooth (DMS UI, post-blueman-removal) | ✅ pairs/connects | — |
+| 2026-07-21 | D: suspend/resume (`rtcwake -m mem`, s2idle) | ✅ resumes clean, WiFi/audio/BT back, no errors | lid/battery/brightness keys still to confirm |

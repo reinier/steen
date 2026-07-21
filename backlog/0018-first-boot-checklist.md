@@ -61,7 +61,7 @@ printf '  \n'                 #  (arrow, distro, home) — no tofu
 
 - [x] Audio out ✓ — `wpctl status` shows a default sink (Ryzen HD Audio Speaker) + mic source; PipeWire 1.6.8 healthy (also enumerates the AirPlay/Sonos network sinks). Headphone-jack reroute not separately exercised, but the audio stack is up.
 - [x] WiFi connects, DNS resolves ✓ — `wlp192s0` connected ("La Wifi"), DNS `10.0.0.1` + IPv6 via resolved stub.
-- [ ] **Screencast/screenshot works** — the real test of `-wlr` → `-gnome`.
+- [x] **Screencast works** ✓ — Chromium `getDisplayMedia` pops the picker and mirrors the screen; the `-wlr` → `-gnome` portal swap is proven.
 - [x] Nautilus + GTK file dialogs work ✓ — Files opens, a GTK open/save dialog renders.
 - [x] No stray Sway processes — leftover cleanup verified: no wifi tray icon, launcher shows only chosen apps.
 - [x] **`lxqt-policykit` prompts under niri** — `pkexec true` pops a dialog ✓ (0002 open question RESOLVED).
@@ -85,7 +85,7 @@ bluetoothctl show                                # controller present + powered
 
 - [ ] Fingerprint enrolls and unlocks login + `sudo`.
 - [x] `fwupd` sees firmware (`fwupdmgr get-devices` ✓); an update applies.
-- [ ] Thunderbolt/dock authorizes; external display works.
+- [x] Thunderbolt/dock authorizes; external display works ✓ — external monitor over USB-C/Thunderbolt drives an image.
 - [ ] Suspend/resume, lid, battery, brightness keys.
 
 ```sh
@@ -173,3 +173,4 @@ Record what actually failed here, with the follow-up item it produced.
 | 2026-07-21 | E/D: H.264, 1PUX export, fwupd, Bazaar, tailscale, keyd tap-hold | ✅ all pass | — |
 | 2026-07-21 | C/F: audio sink+source, WiFi/DNS, no auto-update timer, clock/NTP | ✅ all pass (countme timer is telemetry, not an updater) | — |
 | 2026-07-21 | F: `apps` distrobox + yt-dlp | ✅ Fedora toolbox assembles, yt-dlp installed+exported | Arch image path was retired/auth-walled → switched to Fedora (yt-dlp is in official repos) |
+| 2026-07-21 | C: screencast (portal `-gnome`); D: external display over USB-C/TB | ✅ both pass | — |

@@ -83,6 +83,8 @@ Most items are a **translation**, not a fresh design:
 19. [0019-file-indexer-localsearch.md](0019-file-indexer-localsearch.md) — **decision
     deferred**: leave the tracker/`localsearch` indexer running, exclude heavy dirs, or
     mask it. Currently at the upstream default (runs).
+20. [0020-fork-upstream-artifacts.md](0020-fork-upstream-artifacts.md) — pull keyd /
+    Nerd Font / lazygit from personal forks (supply-chain control), not upstream URLs.
 
 ## Closing items
 

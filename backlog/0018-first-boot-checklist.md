@@ -21,8 +21,8 @@ commands, with the expected result noted where it isn't obvious.
 
 ## A. Rebase and trust (0001)
 
-- [ ] `bootc switch` succeeds and reboots into Steen.
-- [ ] `bootc status` shows the Steen image and the signature verified.
+- [x] `bootc switch` succeeds and reboots into Steen ✓ (booted `ghcr.io/reinier/steen:latest`).
+- [x] `bootc status` shows the Steen image ✓ (booted under the signature-requiring policy, so it verified; rollback target present).
 - [ ] Negative test: an unsigned/tampered image is **rejected** by the policy.
 - [ ] `bootc upgrade` then `bootc rollback` both work (the no-pinning recovery path, 0016).
 
@@ -39,11 +39,11 @@ sudo bootc rollback                # flips back to the prior deployment
 
 ## B. The session comes up (0003, 0004)
 
-- [ ] Greeter appears and logs **straight into niri — no session picker**.
-- [ ] `niri msg` responds; DMS bar, launcher, notifications are up.
-- [ ] `dms ipc` works (the CLI every keybind depends on).
-- [ ] **X11 apps run** — proves `xwayland-satellite` is *started*, not just installed.
-- [ ] kitty opens; Nerd Font glyphs render.
+- [x] Greeter appears and logs **straight into niri — no session picker** ✓.
+- [x] `niri msg` responds; DMS bar, launcher, notifications are up ✓.
+- [x] `dms ipc` works (the CLI every keybind depends on) ✓.
+- [x] **X11 apps run** ✓ — `$DISPLAY=:0`, `xwayland-satellite` running, `env GDK_BACKEND=x11 pavucontrol` opens. Satellite is *started*, not just installed.
+- [x] kitty opens; Nerd Font glyphs render ✓.
 
 ```sh
 niri msg version
@@ -124,8 +124,8 @@ sudo tailscale up && tailscale status
 
 ## F. Tooling and updates (0015, 0016)
 
-- [ ] **No brew** anywhere.
-- [ ] CLI toolkit works.
+- [x] **No brew** anywhere ✓ (`command -v brew` empty, `brew` unknown command).
+- [x] CLI toolkit works ✓ (fish/starship in use, `yazi` runs).
 - [ ] `distrobox create` works (the brew replacement).
 - [ ] **No OS auto-update timer** active; updates are manual.
 - [ ] Clock correct + time daemon enabled.

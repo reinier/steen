@@ -159,8 +159,9 @@ RUN set -e; \
 #  - ibus + CJK engines                             : IME stack (CJK dropped in 0017)
 #  - orca                                           : screen reader autostarting
 # `localsearch` (the tracker file indexer) is NOT removed: nautilus HARD-Requires it
-# (GNOME 50 wired tracker into Files' search), so removing it drags nautilus out. Its
-# background indexing is stopped by masking its autostart instead (below).
+# (GNOME 50 wired tracker into Files' search), so removing it drags nautilus out. Whether
+# to stop its background indexing is deliberately UNDECIDED — left at the upstream default
+# (runs) pending backlog/0019; nothing done to it here.
 # KEPT on purpose: pavucontrol (advanced audio routing), lxqt-policykit (the working
 # polkit agent), gnome-keyring, grim/slurp/wlr-randr (useful wlroots CLI), geoclue2
 # (only its demo-agent autostart is masked). Removed one-by-one and skip-if-absent so a
@@ -173,27 +174,24 @@ RUN for p in network-manager-applet nm-connection-editor \
       rpm -q "$p" >/dev/null 2>&1 && dnf5 -y remove "$p" || true; \
     done; \
     dnf5 clean all || true
-# Mask the autostarts of agents we KEEP (geoclue2 for location; localsearch for
-# nautilus search) so neither runs a background agent/indexer at login.
-RUN rm -f /etc/xdg/autostart/geoclue-demo-agent.desktop \
-          /etc/xdg/autostart/localsearch-3.desktop
+# Mask the geoclue2 *demo* agent autostart (keep geoclue2 itself for location).
+# (localsearch's indexer is left running — see the comment above / backlog/0019.)
+RUN rm -f /etc/xdg/autostart/geoclue-demo-agent.desktop
 
-# Absence guard: the leftovers must be gone, the kept-but-masked autostarts must be gone,
-# AND the base plumbing / polkit agent / nautilus (+ its localsearch dep) must have
-# survived any dependency cascade (the lesson from the system-config-printer / waybar
-# cascades — always guard both directions).
+# Absence guard: the leftovers must be gone, the geoclue demo autostart must be gone, AND
+# the base plumbing / polkit agent / nautilus must have survived any dependency cascade
+# (the lesson from the system-config-printer / waybar / localsearch cascades — always
+# guard both directions).
 RUN set -e; present=""; \
     for p in network-manager-applet nm-connection-editor xfce4-panel tuned-switcher \
              xarchiver imv orca ibus; do \
       rpm -q "$p" >/dev/null 2>&1 && present="$present $p"; \
     done; \
     [ -z "$present" ] || { echo "ERROR: Sway-spin leftovers still present:$present" >&2; exit 1; }; \
-    for a in geoclue-demo-agent localsearch-3; do \
-      ! test -e "/etc/xdg/autostart/$a.desktop" || { echo "ERROR: $a autostart still present" >&2; exit 1; }; \
-    done; \
+    ! test -e /etc/xdg/autostart/geoclue-demo-agent.desktop || { echo "ERROR: geoclue demo autostart still present" >&2; exit 1; }; \
     rpm -q pipewire wireplumber NetworkManager xdg-desktop-portal-gnome polkit \
-           lxqt-policykit gnome-keyring nautilus localsearch dms niri pavucontrol >/dev/null; \
-    echo "sway-spin leftovers removed; nautilus+localsearch kept (indexer autostart masked); plumbing intact"
+           lxqt-policykit gnome-keyring nautilus dms niri pavucontrol >/dev/null; \
+    echo "sway-spin leftovers removed; base plumbing + polkit agent + pavucontrol intact"
 
 # --- Login: greetd + dms-greeter (backlog/0004) ---
 # Boots straight into niri, no session picker. dms-greeter comes from the same

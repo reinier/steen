@@ -118,13 +118,17 @@ Sway-spin **apps/agents** remained and showed up on the running system: a redund
 - `xfce4-panel`, `tuned-switcher`, `xarchiver`, `imv` (stray launcher entries)
 - `ibus` + CJK engines (typing-booster/m17n/anthy/hangul/chewing/libpinyin) — CJK dropped in 0017
 - `orca` (screen-reader autostart)
-- masked the `geoclue-demo-agent` **and** `localsearch-3` autostarts (kept the packages)
+- masked the `geoclue-demo-agent` autostart (kept geoclue2)
+
+`localsearch` (the tracker file indexer) is **kept and left running** — nautilus
+hard-`Requires` it, and whether to stop its background indexing is deferred to
+[0019](0019-file-indexer-localsearch.md).
 
 **Cascade caught (again):** the first attempt also `dnf remove`d `localsearch`, but
 **nautilus hard-`Requires: localsearch`** (GNOME 50 wired tracker into Files' search), so
-that dragged nautilus out — and the plumbing guard failed the build. Fix: keep
-`localsearch`, just mask its `/etc/xdg/autostart/localsearch-3.desktop` so it doesn't
-index in the background at login. (The guard doing its job, third time now.)
+that dragged nautilus out — and the plumbing guard failed the build. That's why it's kept
+(and the running/exclude/mask decision is parked in 0019). The guard doing its job — third
+time it's caught a cascade.
 
 Kept deliberately: `pavucontrol` (advanced audio routing DMS's basic controls lack),
 `lxqt-policykit`, `gnome-keyring`, `grim`/`slurp`/`wlr-randr`. The absence guard asserts

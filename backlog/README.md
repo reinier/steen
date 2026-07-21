@@ -80,6 +80,9 @@ Most items are a **translation**, not a fresh design:
     re-add fingerprint/firmware/thunderbolt/etc.; OpenRGB and CJK dropped.
 18. [0018-first-boot-checklist.md](0018-first-boot-checklist.md) — **living**
     collection point for everything that can only be verified on real hardware.
+19. [0019-file-indexer-localsearch.md](0019-file-indexer-localsearch.md) — **decision
+    deferred**: leave the tracker/`localsearch` indexer running, exclude heavy dirs, or
+    mask it. Currently at the upstream default (runs).
 
 ## Closing items
 

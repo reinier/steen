@@ -66,7 +66,7 @@ printf '  \n'                 #  (arrow, distro, home) — no tofu
 - [x] No stray Sway processes — leftover cleanup verified: no wifi tray icon, launcher shows only chosen apps.
 - [x] **`lxqt-policykit` prompts under niri** — `pkexec true` pops a dialog ✓ (0002 open question RESOLVED).
 - [x] **Keyring/ssh-agent works with `gcr3`** ✓ (0002 open question RESOLVED — no `gcr4` needed).
-- [ ] **Bluetooth** works (blueman was cascade-removed).
+- [x] **Bluetooth** works ✓ — controller present, pairs/connects; DMS owns the UI (blueman was cascade-removed, no regression).
 
 ```sh
 wpctl status                                    # sink + source present; switch output and listen
@@ -174,3 +174,4 @@ Record what actually failed here, with the follow-up item it produced.
 | 2026-07-21 | C/F: audio sink+source, WiFi/DNS, no auto-update timer, clock/NTP | ✅ all pass (countme timer is telemetry, not an updater) | — |
 | 2026-07-21 | F: `apps` distrobox + yt-dlp | ✅ Fedora toolbox assembles, yt-dlp installed+exported | Arch image path was retired/auth-walled → switched to Fedora (yt-dlp is in official repos) |
 | 2026-07-21 | C: screencast (portal `-gnome`); D: external display over USB-C/TB | ✅ both pass | — |
+| 2026-07-21 | C: Bluetooth (DMS UI, post-blueman-removal) | ✅ pairs/connects | — |

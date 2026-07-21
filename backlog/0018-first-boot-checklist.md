@@ -63,9 +63,9 @@ printf '  \n'                 #  (arrow, distro, home) — no tofu
 - [ ] WiFi connects, DNS resolves.
 - [ ] **Screencast/screenshot works** — the real test of `-wlr` → `-gnome`.
 - [ ] Nautilus + GTK file dialogs work.
-- [ ] No stray Sway processes.
-- [ ] **`lxqt-policykit` prompts under niri** *(open question, 0002)*.
-- [ ] **Keyring/ssh-agent works with `gcr3`** *(open question, 0002)*.
+- [x] No stray Sway processes — leftover cleanup verified: no wifi tray icon, launcher shows only chosen apps.
+- [x] **`lxqt-policykit` prompts under niri** — `pkexec true` pops a dialog ✓ (0002 open question RESOLVED).
+- [x] **Keyring/ssh-agent works with `gcr3`** ✓ (0002 open question RESOLVED — no `gcr4` needed).
 - [ ] **Bluetooth** works (blueman was cascade-removed).
 
 ```sh
@@ -84,7 +84,7 @@ bluetoothctl show                                # controller present + powered
 ## D. Hardware — Framework (0017)
 
 - [ ] Fingerprint enrolls and unlocks login + `sudo`.
-- [ ] `fwupd` sees firmware; an update applies.
+- [x] `fwupd` sees firmware (`fwupdmgr get-devices` ✓); an update applies.
 - [ ] Thunderbolt/dock authorizes; external display works.
 - [ ] Suspend/resume, lid, battery, brightness keys.
 
@@ -102,13 +102,13 @@ cat /sys/class/power_supply/BAT*/capacity        # battery reports a number
 
 ## E. Apps (0005–0012)
 
-- [ ] Chromium plays **H.264** (the `libavcodec-freeworld` test); no Firefox.
-- [ ] 1Password unlocks, integrates, `op` works, and **1PUX export opens a dialog**
-      (the `ptrace_scope=1` regression test).
+- [x] Chromium plays **H.264** (the `libavcodec-freeworld` test) ✓; no Firefox.
+- [x] 1Password unlocks, integrates, `op` works, and **1PUX export opens a dialog** ✓
+      (the `ptrace_scope=1` regression test — and browser integration works after the gid≥1000 fix, 0006).
 - [ ] Synology Drive syncs; Nautilus emblems show.
 - [ ] Printer adds via a **polkit prompt** (not root); test page prints.
-- [ ] **Flathub present on a fresh boot** with no `remote-add`.
-- [ ] `tailscale up` joins the tailnet.
+- [x] **Flathub present + Bazaar installs Flatpaks** ✓ (no `remote-add` needed).
+- [x] `tailscale up` joins the tailnet ✓.
 
 ```sh
 rpm -q firefox || echo "no firefox (good)"
@@ -144,8 +144,8 @@ systemctl is-enabled bootc-fetch-apply-updates.timer rpm-ostreed-automatic.timer
 
 ## G. Config layer (0014)
 
-- [ ] `chezmoi apply` from `dotfiles-steen` gives a themed, bound desktop, no schema errors.
-- [ ] keyd tap-hold Super works after the dotfiles enable step.
+- [x] `chezmoi apply` from `dotfiles-steen` gives a bound desktop, `niri validate` clean ✓.
+- [x] keyd tap-hold Super works after the dotfiles enable step ✓.
 
 ```sh
 chezmoi apply                                     # or `chezmoi init --apply <repo>`
@@ -167,3 +167,7 @@ Record what actually failed here, with the follow-up item it produced.
 | 2026-07-20 | B: niri using DMS config | ❌ install had niri's **stock default** config.kdl (waybar); `dms setup` then **failed — policy-disabled on immutable systems** | Fixed (dotfiles) — **vendor** config.kdl + dms/*.kdl (dms setup can't run on atomic); chezmoi deploys them (0014). Patch known 1.4→1.5 verb drift; validate remaining binds |
 | 2026-07-20 | E: 1Password browser integration | ❌ extension can't reach app; `onepassword` group missing at runtime, `op` setgid to gid 1000 (user) | Fixed — groups via `sysusers.d` at fixed GIDs, not RPM `groupadd` (0006) |
 | 2026-07-20 | B: DMS + niri + greeter | ✅ desktop core and DMS greeter come up | — |
+| 2026-07-21 | E: 1Password browser integration | ✅ works after the gid≥1000 fix | 0006 done |
+| 2026-07-21 | C: polkit prompt + gcr3 keyring | ✅ both work under niri | 0002 open questions RESOLVED |
+| 2026-07-21 | Leftover cleanup verified | ✅ no wifi tray, launcher clean | 0002 |
+| 2026-07-21 | E/D: H.264, 1PUX export, fwupd, Bazaar, tailscale, keyd tap-hold | ✅ all pass | — |

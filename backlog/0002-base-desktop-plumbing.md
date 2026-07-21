@@ -165,12 +165,14 @@ before `dms setup` (because `dms setup` is non-destructive and would otherwise s
 See [0014](0014-config-and-dotfiles-steen.md). Broader lesson: a "package present"
 symptom can have a parallel "config references it" cause; check both.
 
+## Resolved on hardware (2026-07-21)
+
+- **Polkit agent under niri:** ✅ `lxqt-policykit` **does** prompt under niri (`pkexec true`
+  pops a password dialog). No change needed.
+- **`gcr3` vs `gcr`:** ✅ the keyring/ssh-agent path works with `gcr3` — no `gcr4` needed.
+
 ## Still open
 
-- **Polkit agent under niri:** `lxqt-policykit` is wired for Sway — confirm it
-  autostarts and actually prompts on a niri session, or autostart/replace it from
-  `dotfiles-steen`.
-- **`gcr3` vs `gcr`:** if DMS's keyring/ssh-agent path expects gcr4, add `gcr`.
 - `nautilus-python` is deferred to 0008 (only if the Synology extension needs it).
 
 ## Verification

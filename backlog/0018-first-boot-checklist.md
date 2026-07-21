@@ -62,7 +62,7 @@ printf '  \n'                 #  (arrow, distro, home) — no tofu
 - [x] Audio out ✓ — `wpctl status` shows a default sink (Ryzen HD Audio Speaker) + mic source; PipeWire 1.6.8 healthy (also enumerates the AirPlay/Sonos network sinks). Headphone-jack reroute not separately exercised, but the audio stack is up.
 - [x] WiFi connects, DNS resolves ✓ — `wlp192s0` connected ("La Wifi"), DNS `10.0.0.1` + IPv6 via resolved stub.
 - [ ] **Screencast/screenshot works** — the real test of `-wlr` → `-gnome`.
-- [ ] Nautilus + GTK file dialogs work.
+- [x] Nautilus + GTK file dialogs work ✓ — Files opens, a GTK open/save dialog renders.
 - [x] No stray Sway processes — leftover cleanup verified: no wifi tray icon, launcher shows only chosen apps.
 - [x] **`lxqt-policykit` prompts under niri** — `pkexec true` pops a dialog ✓ (0002 open question RESOLVED).
 - [x] **Keyring/ssh-agent works with `gcr3`** ✓ (0002 open question RESOLVED — no `gcr4` needed).
@@ -126,7 +126,7 @@ sudo tailscale up && tailscale status
 
 - [x] **No brew** anywhere ✓ (`command -v brew` empty, `brew` unknown command).
 - [x] CLI toolkit works ✓ (fish/starship in use, `yazi` runs).
-- [ ] `distrobox create` works (the brew replacement).
+- [ ] The Arch **`apps`** distrobox assembles (the brew replacement) — `chezmoi apply` runs `run_onchange_create-apps-distrobox.sh`; `distrobox enter apps` works and `yt-dlp` is exported to `~/.local/bin`.
 - [x] **No OS auto-update timer** active ✓ — `bootc-fetch-apply-updates`/`rpm-ostreed-automatic` do **not** appear in `list-timers` (masked in 0016). The one match, `rpm-ostree-countme.timer`, is a weekly anonymous count-me *ping*, not an updater — harmless, leave it.
 - [x] Clock correct + time daemon enabled ✓ — `timedatectl`: TZ `Europe/Amsterdam (CEST)`, "System clock synchronized: yes", "NTP service: active".
 

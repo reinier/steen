@@ -126,7 +126,7 @@ sudo tailscale up && tailscale status
 
 - [x] **No brew** anywhere ✓ (`command -v brew` empty, `brew` unknown command).
 - [x] CLI toolkit works ✓ (fish/starship in use, `yazi` runs).
-- [ ] The Fedora **`apps`** distrobox assembles (the brew replacement) — `chezmoi apply` runs `run_onchange_create-apps-distrobox.sh`; `distrobox enter apps` works and `yt-dlp` is exported to `~/.local/bin`.
+- [x] The Fedora **`apps`** distrobox assembles ✓ (the brew replacement) — `run_onchange_create-apps-distrobox.sh` builds it from `fedora-toolbox:44`; `yt-dlp` installed and exported to `~/.local/bin`.
 - [x] **No OS auto-update timer** active ✓ — `bootc-fetch-apply-updates`/`rpm-ostreed-automatic` do **not** appear in `list-timers` (masked in 0016). The one match, `rpm-ostree-countme.timer`, is a weekly anonymous count-me *ping*, not an updater — harmless, leave it.
 - [x] Clock correct + time daemon enabled ✓ — `timedatectl`: TZ `Europe/Amsterdam (CEST)`, "System clock synchronized: yes", "NTP service: active".
 
@@ -172,3 +172,4 @@ Record what actually failed here, with the follow-up item it produced.
 | 2026-07-21 | Leftover cleanup verified | ✅ no wifi tray, launcher clean | 0002 |
 | 2026-07-21 | E/D: H.264, 1PUX export, fwupd, Bazaar, tailscale, keyd tap-hold | ✅ all pass | — |
 | 2026-07-21 | C/F: audio sink+source, WiFi/DNS, no auto-update timer, clock/NTP | ✅ all pass (countme timer is telemetry, not an updater) | — |
+| 2026-07-21 | F: `apps` distrobox + yt-dlp | ✅ Fedora toolbox assembles, yt-dlp installed+exported | Arch image path was retired/auth-walled → switched to Fedora (yt-dlp is in official repos) |

@@ -59,8 +59,8 @@ printf '  \n'                 #  (arrow, distro, home) — no tofu
 
 ## C. Base plumbing survived the Sway subtraction (0002)
 
-- [ ] Audio out (speakers *and* headphones).
-- [ ] WiFi connects, DNS resolves.
+- [x] Audio out ✓ — `wpctl status` shows a default sink (Ryzen HD Audio Speaker) + mic source; PipeWire 1.6.8 healthy (also enumerates the AirPlay/Sonos network sinks). Headphone-jack reroute not separately exercised, but the audio stack is up.
+- [x] WiFi connects, DNS resolves ✓ — `wlp192s0` connected ("La Wifi"), DNS `10.0.0.1` + IPv6 via resolved stub.
 - [ ] **Screencast/screenshot works** — the real test of `-wlr` → `-gnome`.
 - [ ] Nautilus + GTK file dialogs work.
 - [x] No stray Sway processes — leftover cleanup verified: no wifi tray icon, launcher shows only chosen apps.
@@ -127,8 +127,8 @@ sudo tailscale up && tailscale status
 - [x] **No brew** anywhere ✓ (`command -v brew` empty, `brew` unknown command).
 - [x] CLI toolkit works ✓ (fish/starship in use, `yazi` runs).
 - [ ] `distrobox create` works (the brew replacement).
-- [ ] **No OS auto-update timer** active; updates are manual.
-- [ ] Clock correct + time daemon enabled.
+- [x] **No OS auto-update timer** active ✓ — `bootc-fetch-apply-updates`/`rpm-ostreed-automatic` do **not** appear in `list-timers` (masked in 0016). The one match, `rpm-ostree-countme.timer`, is a weekly anonymous count-me *ping*, not an updater — harmless, leave it.
+- [x] Clock correct + time daemon enabled ✓ — `timedatectl`: TZ `Europe/Amsterdam (CEST)`, "System clock synchronized: yes", "NTP service: active".
 
 ```sh
 command -v brew && echo "BREW PRESENT (bad)" || echo "no brew (good)"
@@ -171,3 +171,4 @@ Record what actually failed here, with the follow-up item it produced.
 | 2026-07-21 | C: polkit prompt + gcr3 keyring | ✅ both work under niri | 0002 open questions RESOLVED |
 | 2026-07-21 | Leftover cleanup verified | ✅ no wifi tray, launcher clean | 0002 |
 | 2026-07-21 | E/D: H.264, 1PUX export, fwupd, Bazaar, tailscale, keyd tap-hold | ✅ all pass | — |
+| 2026-07-21 | C/F: audio sink+source, WiFi/DNS, no auto-update timer, clock/NTP | ✅ all pass (countme timer is telemetry, not an updater) | — |

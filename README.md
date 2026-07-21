@@ -41,7 +41,7 @@ sudo systemctl reboot
 - **Browser** — Chromium, with full media codecs.
 - **Apps** — 1Password, Synology Drive, and **Bazaar** for installing Flatpaks
   from Flathub.
-- **Terminal toolkit** — fish, starship, eza, bat, lazygit, yazi, and friends.
+- **Terminal toolkit** — fish, starship, eza, bat, yazi, and friends.
 
 ## Updating
 

@@ -59,7 +59,8 @@ Most items are a **translation**, not a fresh design:
 6. [0006-1password-native.md](0006-1password-native.md) — native 1Password + CLI,
    `/opt` relocation, setuid/setgid, `ptrace_scope=1`.
 7. [0007-cli-toolkit-terra.md](0007-cli-toolkit-terra.md) — fish/eza/bat/jq/… +
-   starship/lazygit/yazi; wire Terra ourselves (no Zirconium base to inherit it).
+   starship/yazi; wire Terra ourselves (no Zirconium base to inherit it). lazygit is
+    **not** baked — it lives in the `apps` distrobox via dotfiles (0020).
 8. [0008-synology-drive.md](0008-synology-drive.md) — native Synology Drive (COPR)
    with the `/opt` relocation.
 9. [0009-keyd-tap-hold-super.md](0009-keyd-tap-hold-super.md) — keyd built from
@@ -84,7 +85,8 @@ Most items are a **translation**, not a fresh design:
     deferred**: leave the tracker/`localsearch` indexer running, exclude heavy dirs, or
     mask it. Currently at the upstream default (runs).
 20. [0020-fork-upstream-artifacts.md](0020-fork-upstream-artifacts.md) — pull keyd /
-    Nerd Font / lazygit from personal forks (supply-chain control), not upstream URLs.
+    Nerd Font from personal forks (supply-chain control), not upstream URLs. (lazygit
+    dropped from scope — moved out of the image into the `apps` distrobox.)
 
 ## Closing items
 

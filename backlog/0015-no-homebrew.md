@@ -20,7 +20,8 @@ more upstream — consistent with Steen's "nothing between you and Fedora" ethos
 
 | What brew provided | Steen's source |
 |---|---|
-| Core toolkit (`eza`/`bat`/`lazygit`/`yazi`/`fish`/`starship`/`jq`/`zip`/`fzf`) | Fedora + Terra, **baked** (0007) |
+| Core toolkit (`eza`/`bat`/`yazi`/`fish`/`starship`/`jq`/`zip`/`fzf`) | Fedora + Terra, **baked** (0007) |
+| `lazygit` | not in Fedora/Terra → the Fedora `apps` **distrobox** (dejan COPR, exported to `~/.local/bin`), provisioned by `dotfiles-steen` — not baked (0020) |
 | `kanata` | n/a — keyd in the image (0009) |
 | JetBrainsMono **Nerd Font** | **baked from the Nerd Fonts release archive** (0002) — plain `jetbrains-mono-fonts` is in Fedora but lacks the icon glyphs |
 | `framework_tool` | not needed for firmware — `fwupd`/LVFS covers Framework updates (0017); the EC utility is an **optional source-build** if you want it |

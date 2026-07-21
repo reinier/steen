@@ -133,7 +133,8 @@ sudo tailscale up && tailscale status
 ```sh
 command -v brew && echo "BREW PRESENT (bad)" || echo "no brew (good)"
 test -e /home/linuxbrew && echo "linuxbrew dir exists (bad)" || echo "clean"
-for c in fish starship eza bat jq lazygit yazi sshfs; do command -v "$c" || echo "MISSING $c"; done
+for c in fish starship eza bat jq yazi sshfs; do command -v "$c" || echo "MISSING $c"; done
+command -v lazygit && lazygit --version   # from the apps distrobox export (~/.local/bin), not the image
 distrobox create -Y -n scratch -i registry.fedoraproject.org/fedora:44 && distrobox enter scratch -- true
 # updates: NOTHING bootc/rpm-ostree should be listed as an active timer.
 systemctl list-timers --all | grep -Ei 'bootc|rpm-ostree|update' || echo "no auto-update timer (good)"

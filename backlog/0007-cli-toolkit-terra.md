@@ -34,7 +34,15 @@ depends on live Terra updates; otherwise remove-after like the other sources.
 |---|---|
 | **Fedora** | `fish` 4.6.0, `eza`, `bat`, `jq`, `zip`, `fuse-sshfs`, `fzf`, `xdg-terminal-exec`, `ripgrep`, **`chezmoi`** |
 | **Terra** | `starship` 1.26.0, `yazi` 26.5.6 |
-| **Upstream release binary** | `lazygit` 0.63.1 (pinned `ARG LAZYGIT_VERSION`) |
+| ~~**Upstream release binary**~~ | ~~`lazygit` 0.63.1~~ — **removed from the image**, see below |
+
+> **Update (2026-07-21): `lazygit` moved out of the image.** Baking it meant a
+> hand-bumped upstream release binary (the awkward case [0020](0020-fork-upstream-artifacts.md)
+> was trying to tame). It's a self-contained CLI with no system integration, so it now
+> lives in the Fedora `apps` distrobox (dejan/lazygit COPR, exported to `~/.local/bin`)
+> via `dotfiles-steen`'s `run_onchange_create-apps-distrobox.sh` — updated with the
+> container, not the image. The Containerfile guard now asserts lazygit is **absent** so
+> it can't creep back. Everything below about the baked binary is historical.
 
 Fedora packages install **first**; `terra.repo` is dropped in only for the second
 transaction and removed straight after, with `priority=200` (higher number = lower
@@ -68,5 +76,6 @@ image, not brew. See [0015](0015-no-homebrew.md).
 
 ## Verification
 
-- `fish`, `starship`, `eza`, `bat`, `jq`, `lazygit`, `yazi`, `sshfs` all on `PATH`
-  and runnable in a fresh login shell (image binaries; no brew present).
+- `fish`, `starship`, `eza`, `bat`, `jq`, `yazi`, `sshfs` all on `PATH` and runnable in
+  a fresh login shell (image binaries; no brew present). `lazygit` is **not** an image
+  binary — it comes from the `apps` distrobox export (see 0018 F / dotfiles).

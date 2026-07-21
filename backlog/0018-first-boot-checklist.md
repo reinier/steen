@@ -126,7 +126,7 @@ sudo tailscale up && tailscale status
 
 - [x] **No brew** anywhere ✓ (`command -v brew` empty, `brew` unknown command).
 - [x] CLI toolkit works ✓ (fish/starship in use, `yazi` runs).
-- [ ] The Arch **`apps`** distrobox assembles (the brew replacement) — `chezmoi apply` runs `run_onchange_create-apps-distrobox.sh`; `distrobox enter apps` works and `yt-dlp` is exported to `~/.local/bin`.
+- [ ] The Fedora **`apps`** distrobox assembles (the brew replacement) — `chezmoi apply` runs `run_onchange_create-apps-distrobox.sh`; `distrobox enter apps` works and `yt-dlp` is exported to `~/.local/bin`.
 - [x] **No OS auto-update timer** active ✓ — `bootc-fetch-apply-updates`/`rpm-ostreed-automatic` do **not** appear in `list-timers` (masked in 0016). The one match, `rpm-ostree-countme.timer`, is a weekly anonymous count-me *ping*, not an updater — harmless, leave it.
 - [x] Clock correct + time daemon enabled ✓ — `timedatectl`: TZ `Europe/Amsterdam (CEST)`, "System clock synchronized: yes", "NTP service: active".
 

@@ -117,8 +117,14 @@ Sway-spin **apps/agents** remained and showed up on the running system: a redund
 - `network-manager-applet` + `nm-connection-editor` (the wifi tray icon; DMS owns network)
 - `xfce4-panel`, `tuned-switcher`, `xarchiver`, `imv` (stray launcher entries)
 - `ibus` + CJK engines (typing-booster/m17n/anthy/hangul/chewing/libpinyin) — CJK dropped in 0017
-- `orca`, `localsearch` (screen-reader + tracker file-indexer autostarts)
-- masked the `geoclue-demo-agent` autostart (kept geoclue2 itself)
+- `orca` (screen-reader autostart)
+- masked the `geoclue-demo-agent` **and** `localsearch-3` autostarts (kept the packages)
+
+**Cascade caught (again):** the first attempt also `dnf remove`d `localsearch`, but
+**nautilus hard-`Requires: localsearch`** (GNOME 50 wired tracker into Files' search), so
+that dragged nautilus out — and the plumbing guard failed the build. Fix: keep
+`localsearch`, just mask its `/etc/xdg/autostart/localsearch-3.desktop` so it doesn't
+index in the background at login. (The guard doing its job, third time now.)
 
 Kept deliberately: `pavucontrol` (advanced audio routing DMS's basic controls lack),
 `lxqt-policykit`, `gnome-keyring`, `grim`/`slurp`/`wlr-randr`. The absence guard asserts
